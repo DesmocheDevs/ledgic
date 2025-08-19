@@ -7,10 +7,11 @@ import { DomainError } from "../../../../shared/domain/errors/DomainError";
 // Configurar el contenedor de dependencias
 configureContainer();
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+  const { id } = await params;
     const useCase = container.resolve(GetClientUseCase);
-    const client = await useCase.execute(params.id);
+  const client = await useCase.execute(id);
     
     const response = {
       id: client.id.getValue(),
@@ -26,8 +27,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     };
     
     return NextResponse.json(response);
-  } catch (error: any) {
-    console.error(`Error en GET /api/clients/${params.id}:`, error);
+  } catch (error: unknown) {
+    const { id } = await params;
+    console.error(`Error en GET /api/clients/${id}:`, error);
     
     if (error instanceof DomainError) {
       return NextResponse.json({ error: error.message }, { status: 404 });
@@ -40,7 +42,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const body = await req.json();
     
@@ -52,8 +54,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       );
     }
     
-    const useCase = container.resolve(UpdateClientUseCase);
-    const client = await useCase.execute(params.id, body);
+  const { id } = await params;
+  const useCase = container.resolve(UpdateClientUseCase);
+  const client = await useCase.execute(id, body);
     
     const response = {
       id: client.id.getValue(),
@@ -69,8 +72,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     };
     
     return NextResponse.json(response);
-  } catch (error: any) {
-    console.error(`Error en PUT /api/clients/${params.id}:`, error);
+  } catch (error: unknown) {
+    const { id } = await params;
+    console.error(`Error en PUT /api/clients/${id}:`, error);
     
     if (error instanceof DomainError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -83,14 +87,16 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const useCase = container.resolve(DeleteClientUseCase);
-    await useCase.execute(params.id);
+  const { id } = await params;
+  const useCase = container.resolve(DeleteClientUseCase);
+  await useCase.execute(id);
     
     return NextResponse.json({ message: "Cliente eliminado correctamente" });
-  } catch (error: any) {
-    console.error(`Error en DELETE /api/clients/${params.id}:`, error);
+  } catch (error: unknown) {
+    const { id } = await params;
+    console.error(`Error en DELETE /api/clients/${id}:`, error);
     
     if (error instanceof DomainError) {
       return NextResponse.json({ error: error.message }, { status: 404 });

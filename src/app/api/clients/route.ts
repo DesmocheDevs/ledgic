@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { container, configureContainer } from "../../../shared/container";
 import { GetAllClientsUseCase, CreateClientUseCase } from "../../../modules/clients/application/use-cases";
@@ -28,7 +27,7 @@ export async function GET() {
     }));
     
     return createSuccessResponse(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en GET /api/clients:', error);
     return createErrorResponse('No se pudieron obtener los clientes', 500);
   }
@@ -91,10 +90,12 @@ export async function POST(req: Request) {
       updatedAt: client.updatedAt,
     }, 201);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en POST /api/clients:', error);
-    console.error('Error type:', error.constructor.name);
-    console.error('Error message:', error.message);
+    if (error instanceof Error) {
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+    }
 
     // Errores de dominio
     if (error instanceof DomainError) {
@@ -102,7 +103,7 @@ export async function POST(req: Request) {
     }
 
     // Errores de Prisma (violación de unicidad)
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
         const target = (error.meta?.target as string[])?.join(", ") ?? "desconocido";
         const errorMessage = `Ya existe un cliente con este ${target}`;
@@ -111,6 +112,6 @@ export async function POST(req: Request) {
     }
 
     // Otros errores
-    return createErrorResponse("Error interno del servidor", 500);
+  return createErrorResponse("Error interno del servidor", 500);
   }
 }

@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { PrismaClient } from "@prisma/client";
 import prisma from "./infrastructure/database/prisma";
+import type { ClientRepository } from "../modules/clients/domain";
 
 // Tokens para inyección de dependencias
 export const TOKENS = {
@@ -11,23 +12,19 @@ export const TOKENS = {
 
 let isContainerConfigured = false;
 
-export function configureContainer(): void {
-  if (isContainerConfigured) {
-    return;
-  }
-
+export async function configureContainer(): Promise<void> {
+  if (isContainerConfigured) return;
   try {
     // Registrar dependencias de infraestructura
     container.registerInstance<PrismaClient>(TOKENS.PrismaClient, prisma);
 
-    // Importar dinámicamente para evitar dependencias circulares
-    const { PrismaClientRepository } = require("../modules/clients/infrastructure");
-    
-    // Registrar repositorios
-    container.register<any>(
-      TOKENS.ClientRepository,
-      { useClass: PrismaClientRepository }
-    );
+    // Import dinámico para evitar ciclos y cumplir reglas ESM
+    const { PrismaClientRepository } = await import("../modules/clients/infrastructure");
+
+    // Registrar repositorios con tipado fuerte
+    container.register<ClientRepository>(TOKENS.ClientRepository, {
+      useClass: PrismaClientRepository,
+    });
 
     isContainerConfigured = true;
   } catch (error) {

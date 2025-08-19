@@ -44,7 +44,7 @@ export default function ClientsPage() {
             const errorData = await res.json();
             const errorMessage = errorData.error || `Error del servidor (${res.status})`;
             throw new Error(errorMessage);
-          } catch (parseError) {
+          } catch {
             // Fallback: intenta leer el texto plano del error
             try {
               const errorText = await res.text();
@@ -98,7 +98,7 @@ export default function ClientsPage() {
           const errorData = await res.clone().json();
           const errorMessage = errorData.error || `Error del servidor (${res.status})`;
           throw new Error(errorMessage);
-        } catch (parseError) {
+        } catch {
           // Fallback: intenta leer el texto plano del error
           try {
             const errorText = await res.text();
@@ -121,7 +121,7 @@ export default function ClientsPage() {
         sexo: 'MASCULINO',
       });
       setError(null);
-    } catch (err: any) {
+  } catch (err: unknown) {
       console.error('Error creating client:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido al crear el cliente';
       setError(errorMessage);
@@ -139,7 +139,7 @@ export default function ClientsPage() {
           const errorData = await res.json();
           const errorMessage = errorData.error || `Error del servidor (${res.status})`;
           throw new Error(errorMessage);
-        } catch (parseError) {
+        } catch {
           // Fallback: intenta leer el texto plano del error
           try {
             const errorText = await res.text();
@@ -150,7 +150,7 @@ export default function ClientsPage() {
         }
       }
       setClients(clients.filter((c) => c.id !== id));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error deleting client:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido al eliminar el cliente';
       setError(errorMessage);

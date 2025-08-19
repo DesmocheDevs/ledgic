@@ -4,6 +4,9 @@ import { container, configureContainer } from "../../../../shared/container";
 import { GetClientUseCase, UpdateClientUseCase, DeleteClientUseCase } from "../../../../modules/clients/application/use-cases";
 import { DomainError } from "../../../../shared/domain/errors/DomainError";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Configurar el contenedor de dependencias
 configureContainer();
 

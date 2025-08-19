@@ -5,6 +5,10 @@ import { GetAllClientsUseCase, CreateClientUseCase } from "../../../modules/clie
 import { DomainError } from "../../../shared/domain/errors/DomainError";
 import { createErrorResponse, createSuccessResponse } from "../../../shared/infrastructure/utils/errorResponse";
 
+// Asegura runtime Node y evita cualquier intento de prerender
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Configurar el contenedor de dependencias
 configureContainer();
 

@@ -1,0 +1,322 @@
+@import "tailwindcss";
+
+/* ========================================
+   SISTEMA DE TIPOGRAFÍA FLAT DESIGN
+======================================== */
+
+/* Tracking Wide System - Basado en principios de legibilidad flat */
+:root {
+  /* Tracking optimizado para flat design */
+  --tracking-tight: -0.025em;    /* Para títulos grandes */
+  --tracking-normal: 0em;        /* Para cuerpo estándar */
+  --tracking-wide: 0.025em;      /* Para botones y labels */
+  --tracking-wider: 0.05em;      /* Para navegación y badges */
+  --tracking-widest: 0.1em;      /* Para elementos de énfasis */
+
+  /* Font Weights - Jerarquía clara flat design */
+  --font-light: 300;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Font Sizes - Sistema modular para flat design */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.875rem;     /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+  --text-3xl: 1.875rem;    /* 30px */
+  --text-4xl: 2.25rem;     /* 36px */
+  --text-5xl: 3rem;        /* 48px */
+}
+
+/* ========================================
+   SISTEMA DE COLORES OPTIMIZADO
+======================================== */
+
+:root {
+  /* Colores base modificados para funcionalidad */
+  
+  /* PRIMARY - Basado en oklch(0.66 0.2 18) - Naranja energético */
+  --primary-50: oklch(0.95 0.04 18);
+  --primary-100: oklch(0.89 0.08 18);
+  --primary-200: oklch(0.83 0.12 18);
+  --primary-300: oklch(0.77 0.16 18);
+  --primary-400: oklch(0.71 0.18 18);
+  --primary-500: oklch(0.66 0.2 18);    /* Color original */
+  --primary-600: oklch(0.60 0.19 18);
+  --primary-700: oklch(0.54 0.17 18);
+  --primary-800: oklch(0.48 0.15 18);
+  --primary-900: oklch(0.42 0.13 18);
+  
+  /* SECONDARY - Basado en oklch(0.6 0.085 240) - Azul confianza */
+  --secondary-50: oklch(0.96 0.02 240);
+  --secondary-100: oklch(0.91 0.025 240);
+  --secondary-200: oklch(0.86 0.04 240);
+  --secondary-300: oklch(0.81 0.055 240);
+  --secondary-400: oklch(0.76 0.07 240);
+  --secondary-500: oklch(0.71 0.085 240);
+  --secondary-600: oklch(0.6 0.085 240);  /* Color original */
+  --secondary-700: oklch(0.54 0.08 240);
+  --secondary-800: oklch(0.48 0.075 240);
+  --secondary-900: oklch(0.42 0.07 240);
+  
+  /* ACCENT - Basado en oklch(0.35 0.1 261) - Púrpura profundo */
+  --accent-50: oklch(0.94 0.02 261);
+  --accent-100: oklch(0.88 0.03 261);
+  --accent-200: oklch(0.82 0.05 261);
+  --accent-300: oklch(0.76 0.07 261);
+  --accent-400: oklch(0.70 0.08 261);
+  --accent-500: oklch(0.64 0.09 261);
+  --accent-600: oklch(0.58 0.095 261);
+  --accent-700: oklch(0.52 0.1 261);
+  --accent-800: oklch(0.35 0.1 261);    /* Color original */
+  --accent-900: oklch(0.28 0.09 261);
+  
+  /* COLORES FUNCIONALES FLAT DESIGN */
+  
+  /* Success - Verde flat optimizado */
+  --success-50: oklch(0.95 0.03 145);
+  --success-100: oklch(0.89 0.06 145);
+  --success-200: oklch(0.83 0.09 145);
+  --success-300: oklch(0.77 0.12 145);
+  --success-400: oklch(0.71 0.15 145);
+  --success-500: oklch(0.65 0.18 145);
+  --success-600: oklch(0.59 0.19 145);
+  --success-700: oklch(0.53 0.18 145);
+  --success-800: oklch(0.47 0.16 145);
+  --success-900: oklch(0.41 0.14 145);
+  
+  /* Error - Rojo flat optimizado */
+  --error-50: oklch(0.95 0.02 25);
+  --error-100: oklch(0.89 0.05 25);
+  --error-200: oklch(0.83 0.08 25);
+  --error-300: oklch(0.77 0.11 25);
+  --error-400: oklch(0.71 0.14 25);
+  --error-500: oklch(0.65 0.17 25);
+  --error-600: oklch(0.59 0.18 25);
+  --error-700: oklch(0.53 0.17 25);
+  --error-800: oklch(0.47 0.15 25);
+  --error-900: oklch(0.41 0.13 25);
+  
+  /* Warning - Amarillo flat optimizado */
+  --warning-50: oklch(0.96 0.02 85);
+  --warning-100: oklch(0.91 0.05 85);
+  --warning-200: oklch(0.86 0.08 85);
+  --warning-300: oklch(0.81 0.11 85);
+  --warning-400: oklch(0.76 0.14 85);
+  --warning-500: oklch(0.71 0.17 85);
+  --warning-600: oklch(0.66 0.18 85);
+  --warning-700: oklch(0.61 0.17 85);
+  --warning-800: oklch(0.56 0.15 85);
+  --warning-900: oklch(0.51 0.13 85);
+  
+  /* NEUTRALES - Blancos y negros suaves para flat design */
+  
+  /* Tema Claro */
+  --white-soft: oklch(0.98 0.002 0);      /* Blanco suave sin fatiga */
+  --gray-50: oklch(0.96 0.004 240);       /* Gris ultra claro */
+  --gray-100: oklch(0.92 0.006 240);
+  --gray-200: oklch(0.88 0.008 240);
+  --gray-300: oklch(0.84 0.01 240);
+  --gray-400: oklch(0.72 0.012 240);
+  --gray-500: oklch(0.60 0.014 240);
+  --gray-600: oklch(0.48 0.016 240);
+  --gray-700: oklch(0.36 0.018 240);
+  --gray-800: oklch(0.24 0.02 240);
+  --gray-900: oklch(0.15 0.015 240);
+  --black-soft: oklch(0.12 0.01 240);     /* Negro suave sin fatiga */
+  
+  /* Variables de tema claro */
+  --background: var(--white-soft);
+  --background-secondary: var(--gray-50);
+  --foreground: var(--gray-900);
+  --foreground-secondary: var(--gray-700);
+  --border: var(--gray-200);
+  --border-secondary: var(--gray-100);
+}
+
+/* ========================================
+   TEMA OSCURO
+======================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Neutrales tema oscuro */
+    --dark-bg: oklch(0.11 0.008 240);      /* Fondo principal oscuro suave */
+    --dark-bg-secondary: oklch(0.14 0.01 240);  /* Fondo secundario */
+    --dark-fg: oklch(0.89 0.006 240);      /* Texto principal claro suave */
+    --dark-fg-secondary: oklch(0.75 0.008 240); /* Texto secundario */
+    --dark-border: oklch(0.25 0.012 240);   /* Bordes oscuros */
+    --dark-border-secondary: oklch(0.20 0.01 240); /* Bordes secundarios */
+    
+    /* Aplicar tema oscuro */
+    --background: var(--dark-bg);
+    --background-secondary: var(--dark-bg-secondary);
+    --foreground: var(--dark-fg);
+    --foreground-secondary: var(--dark-fg-secondary);
+    --border: var(--dark-border);
+    --border-secondary: var(--dark-border-secondary);
+    
+    /* Ajustar colores de marca para tema oscuro */
+    --primary-500: oklch(0.70 0.18 18);    /* Más brillante en oscuro */
+    --secondary-600: oklch(0.65 0.09 240); /* Más visible en oscuro */
+    --accent-800: oklch(0.45 0.12 261);    /* Más vibrante en oscuro */
+  }
+}
+
+/* ========================================
+   CLASES DE UTILIDAD TIPOGRÁFICA
+======================================== */
+
+/* Títulos principales - Flat Design */
+.title-hero {
+  font-size: var(--text-5xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+}
+
+.title-section {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.2;
+}
+
+.title-subsection {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-normal);
+  line-height: 1.3;
+}
+
+.title-card {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-medium);
+  letter-spacing: var(--tracking-normal);
+  line-height: 1.4;
+}
+
+/* Cuerpo de texto */
+.body-large {
+  font-size: var(--text-lg);
+  font-weight: var(--font-regular);
+  letter-spacing: var(--tracking-normal);
+  line-height: 1.6;
+}
+
+.body-base {
+  font-size: var(--text-base);
+  font-weight: var(--font-regular);
+  letter-spacing: var(--tracking-normal);
+  line-height: 1.6;
+}
+
+.body-small {
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+  letter-spacing: var(--tracking-wide);
+  line-height: 1.5;
+}
+
+/* Elementos UI específicos */
+.button-text {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  letter-spacing: var(--tracking-wide);
+  line-height: 1;
+}
+
+.label-text {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  letter-spacing: var(--tracking-wider);
+  line-height: 1.2;
+}
+
+.badge-text {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-widest);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* ========================================
+   CONFIGURACIÓN TAILWIND
+======================================== */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* Colores primarios */
+  --color-primary: var(--primary-500);
+  --color-secondary: var(--secondary-600);
+  --color-accent: var(--accent-800);
+  
+  /* Colores funcionales */
+  --color-success: var(--success-600);
+  --color-error: var(--error-600);
+  --color-warning: var(--warning-600);
+  
+  /* Grises */
+  --color-gray-50: var(--gray-50);
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
+  --color-gray-700: var(--gray-700);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-900);
+}
+
+/* ========================================
+   ESTILOS BASE
+======================================== */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: var(--text-base);
+  font-weight: var(--font-regular);
+  letter-spacing: var(--tracking-normal);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 100% 0; }
+}
+
+
+/* Cambiar el color del icono de dolar en la variable stroke */
+.animated-bg {
+  color: var(--primary-500);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-5 0 24 24' width='200' height='200'%3E%3Cpath d='M13.0000978,2768 C10.3390978,2768 9.00009781,2766.371 9.00009781,2764.5 C9.00009781,2762.691 10.2710978,2761 13.0000978,2761 L13.0000978,2768 Z M19.0000978,2773.5 C19.0000978,2775.309 17.7290978,2777 15.0000978,2777 L15.0000978,2770 C17.6610978,2770 19.0000978,2771.629 19.0000978,2773.5 Z M21.0000978,2773.5 C21.0000978,2770.732 18.9750978,2768 15.0000978,2768 L15.0000978,2761 L17.0000978,2761 C18.1050978,2761 19.0000978,2761.895 19.0000978,2763 L21.0000978,2763 C21.0000978,2760.791 19.2090978,2759 17.0000978,2759 L15.0000978,2759 L15.0000978,2757 L13.0000978,2757 L13.0000978,2759 C9.04209781,2759 7.00009781,2761.722 7.00009781,2764.5 C7.00009781,2767.268 9.02509781,2770 13.0000978,2770 L13.0000978,2777 L11.0000978,2777 C9.89509781,2777 9.00009781,2776.105 9.00009781,2775 L7.00009781,2775 C7.00009781,2777.209 8.79109781,2779 11.0000978,2779 L13.0000978,2779 L13.0000978,2781 L15.0000978,2781 L15.0000978,2779 C18.9580978,2779 21.0000978,2776.278 21.0000978,2773.5 Z' transform='translate(-63,-2917) translate(56,160)' fill='none' stroke='%23ec6f47' stroke-width='0.5'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 40px 60px;
+  animation: scroll 20s linear infinite;
+}
+
+/* Versión para tema oscuro */
+@media (prefers-color-scheme: dark) {
+  .animated-bg {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-5 0 24 24' width='200' height='200'%3E%3Cpath d='M13.0000978,2768 C10.3390978,2768 9.00009781,2766.371 9.00009781,2764.5 C9.00009781,2762.691 10.2710978,2761 13.0000978,2761 L13.0000978,2768 Z M19.0000978,2773.5 C19.0000978,2775.309 17.7290978,2777 15.0000978,2777 L15.0000978,2770 C17.6610978,2770 19.0000978,2771.629 19.0000978,2773.5 Z M21.0000978,2773.5 C21.0000978,2770.732 18.9750978,2768 15.0000978,2768 L15.0000978,2761 L17.0000978,2761 C18.1050978,2761 19.0000978,2761.895 19.0000978,2763 L21.0000978,2763 C21.0000978,2760.791 19.2090978,2759 17.0000978,2759 L15.0000978,2759 L15.0000978,2757 L13.0000978,2757 L13.0000978,2759 C9.04209781,2759 7.00009781,2761.722 7.00009781,2764.5 C7.00009781,2767.268 9.02509781,2770 13.0000978,2770 L13.0000978,2777 L11.0000978,2777 C9.89509781,2777 9.00009781,2776.105 9.00009781,2775 L7.00009781,2775 C7.00009781,2777.209 8.79109781,2779 11.0000978,2779 L13.0000978,2779 L13.0000978,2781 L15.0000978,2781 L15.0000978,2779 C18.9580978,2779 21.0000978,2776.278 21.0000978,2773.5 Z' transform='translate(-63,-2917) translate(56,160)' fill='none' stroke='%23f18c5b' stroke-width='0.5'/%3E%3C/svg%3E");
+  }
+}
+
+
+
+.section-gradient-border {
+  background-image: linear-gradient(to right, var(--secondary-700) 0%, var(--background) 25%, var(--background) 75%, var(--secondary-700) 100%);
+}

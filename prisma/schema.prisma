@@ -1,10 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+enum Sexo {
+  MASCULINO
+  FEMENINO
+  OTRO
+}
+
+enum EstadoInventario {
+  ACTIVO
+  INACTIVO
+  DESCONTINUADO
 }
 
 model User {
@@ -12,12 +24,9 @@ model User {
   email     String   @unique
   name      String?
   createdAt DateTime @default(now())
-}
+  updatedAt DateTime @updatedAt
 
-enum Sexo {
-  MASCULINO
-  FEMENINO
-  OTRO
+  @@map("users")
 }
 
 model Client {
@@ -31,4 +40,24 @@ model Client {
   sexo      Sexo
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("clients")
+  @@index([cedula])
+  @@index([correo])
+}
+
+model Inventory {
+  id            String           @id @default(uuid())
+  nombre        String
+  categoria     String
+  estado        EstadoInventario
+  unidadMedida  String           @map("unidad_medida") @db.VarChar(50)
+  proveedor     String?
+  tipo          String?
+  createdAt     DateTime         @default(now()) @map("creado")
+  updatedAt     DateTime         @updatedAt @map("actualizado")
+
+  @@map("inventory")
+  @@index([categoria])
+  @@index([estado])
 }

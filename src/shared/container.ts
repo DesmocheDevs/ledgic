@@ -3,11 +3,13 @@ import { container } from "tsyringe";
 import { PrismaClient } from "@prisma/client";
 import prisma from "./infrastructure/database/prisma";
 import type { ClientRepository } from "../modules/clients/domain";
+import type { InventoryRepository } from "../modules/inventory/domain";
 
 // Tokens para inyección de dependencias
 export const TOKENS = {
   PrismaClient: "PrismaClient",
   ClientRepository: "ClientRepository",
+  InventoryRepository: "InventoryRepository",
 } as const;
 
 let isContainerConfigured = false;
@@ -20,10 +22,15 @@ export async function configureContainer(): Promise<void> {
 
     // Import dinámico para evitar ciclos y cumplir reglas ESM
     const { PrismaClientRepository } = await import("../modules/clients/infrastructure");
+    const { PrismaInventoryRepository } = await import("../modules/inventory/infrastructure");
 
     // Registrar repositorios con tipado fuerte
     container.register<ClientRepository>(TOKENS.ClientRepository, {
       useClass: PrismaClientRepository,
+    });
+
+    container.register<InventoryRepository>(TOKENS.InventoryRepository, {
+      useClass: PrismaInventoryRepository,
     });
 
     isContainerConfigured = true;

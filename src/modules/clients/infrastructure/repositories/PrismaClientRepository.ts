@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { PrismaClient } from '@prisma/client';
-import type { ClientRepository } from '../../domain';
+import type { ClientRepository } from '../../domain/repositories/ClientRepository';
 import { Client } from '../../domain';
 import { ClientMapper } from '../mappers/ClientMapper';
 import { UUID } from '../../../../shared/domain/value-objects/UUID';

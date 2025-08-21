@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 
-// Define a UI-only Sexo type to avoid importing domain entities in the client bundle
 const UI_SEXOS = ['MASCULINO', 'FEMENINO', 'OTRO'] as const;
 type UISexo = typeof UI_SEXOS[number];
 

@@ -2,14 +2,18 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { PrismaClient } from "@prisma/client";
 import prisma from "./infrastructure/database/prisma";
-import type { ClientRepository } from "../modules/clients/domain";
+import type { ClientRepository } from "../modules/clients/domain/repositories/ClientRepository";
 import type { InventoryRepository } from "../modules/inventory/domain";
+import type { MaterialRepository } from "../modules/inventory/domain/repositories/MaterialRepository";
+import type { ProductRepository } from "../modules/products/domain";
 
 // Tokens para inyección de dependencias
 export const TOKENS = {
   PrismaClient: "PrismaClient",
   ClientRepository: "ClientRepository",
   InventoryRepository: "InventoryRepository",
+  MaterialRepository: "MaterialRepository",
+  ProductRepository: "ProductRepository",
 } as const;
 
 let isContainerConfigured = false;
@@ -23,6 +27,8 @@ export async function configureContainer(): Promise<void> {
     // Import dinámico para evitar ciclos y cumplir reglas ESM
     const { PrismaClientRepository } = await import("../modules/clients/infrastructure");
     const { PrismaInventoryRepository } = await import("../modules/inventory/infrastructure");
+    const { PrismaMaterialRepository } = await import("../modules/inventory/infrastructure");
+    const { PrismaProductRepository } = await import("../modules/products/infrastructure/repositories/PrismaProductRepository");
 
     // Registrar repositorios con tipado fuerte
     container.register<ClientRepository>(TOKENS.ClientRepository, {
@@ -31,6 +37,14 @@ export async function configureContainer(): Promise<void> {
 
     container.register<InventoryRepository>(TOKENS.InventoryRepository, {
       useClass: PrismaInventoryRepository,
+    });
+
+    container.register<MaterialRepository>(TOKENS.MaterialRepository, {
+      useClass: PrismaMaterialRepository,
+    });
+
+    container.register<ProductRepository>(TOKENS.ProductRepository, {
+      useClass: PrismaProductRepository,
     });
 
     isContainerConfigured = true;

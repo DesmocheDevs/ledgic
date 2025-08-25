@@ -29,7 +29,7 @@ export class InventoryMapper {
     return estadoMap[estado];
   }
 
-  static toEntity(dto: InventoryDTO): Inventory {
+  static toEntity(dto: InventoryDTO): Inventory | null {
     try {
       return new Inventory(
         UUID.fromString(dto.id),
@@ -43,8 +43,12 @@ export class InventoryMapper {
         dto.updatedAt,
       );
     } catch (error) {
-      console.error('Error mapping DTO to Entity:', error);
-      throw new DomainError('Error al convertir datos del inventario');
+      if (error instanceof DomainError) {
+        console.warn(`Inventario inválido omitido (ID: ${dto.id}): ${error.message}`);
+        return null;
+      }
+      console.error('Error inesperado al mapear DTO a Entidad:', error);
+      throw new Error('Error inesperado al convertir datos del inventario');
     }
   }
 

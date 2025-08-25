@@ -13,14 +13,21 @@ export class PrismaInventoryRepository implements InventoryRepository {
   async findById(id: UUID): Promise<Inventory | null> {
     const inventoryDTO = await this.prisma.inventory.findUnique({ where: { id: id.getValue() } });
     if (!inventoryDTO) return null;
-    return InventoryMapper.toEntity(inventoryDTO);
+    
+    const inventory = InventoryMapper.toEntity(inventoryDTO);
+    return inventory;
   }
 
   async findAll(): Promise<Inventory[]> {
     const inventoriesDTO = await this.prisma.inventory.findMany({
       orderBy: { createdAt: 'desc' }
     });
-    return inventoriesDTO.map((dto) => InventoryMapper.toEntity(dto));
+    
+    const inventories = inventoriesDTO
+      .map((dto) => InventoryMapper.toEntity(dto))
+      .filter((inventory): inventory is Inventory => inventory !== null);
+      
+    return inventories;
   }
 
   async create(inventory: Inventory): Promise<void> {

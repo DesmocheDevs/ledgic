@@ -29,7 +29,7 @@ export class ClientMapper {
     return sexoMap[sexo];
   }
 
-  static toEntity(dto: ClientDTO): Client {
+  static toEntity(dto: ClientDTO): Client | null {
     try {
       return new Client(
         UUID.fromString(dto.id),
@@ -44,8 +44,12 @@ export class ClientMapper {
         dto.updatedAt,
       );
     } catch (error) {
-      console.error('Error mapping DTO to Entity:', error);
-      throw new DomainError('Error al convertir datos del cliente');
+      if (error instanceof DomainError) {
+        console.warn(`Cliente inválido omitido (ID: ${dto.id}): ${error.message}`);
+        return null;
+      }
+      console.error('Error inesperado al mapear DTO a Entidad:', error);
+      throw new Error('Error inesperado al convertir datos del cliente');
     }
   }
 

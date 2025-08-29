@@ -2,32 +2,23 @@
 
 import { useState, useEffect } from 'react';
 
-const UI_SEXOS = ['MASCULINO', 'FEMENINO', 'OTRO'] as const;
-type UISexo = typeof UI_SEXOS[number];
-
-type UIClient = {
+type UIProduct = {
   id: string;
   nombre: string;
-  apellido: string;
-  email: string;
-  sexo: string;
-  cedula: string;
-  numero: string | null;
-  direccion: string;
+  descripcion: string | null;
+  precio: string;
+  categoria: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
-export default function ClientsPage() {
-  const [clients, setClients] = useState<UIClient[]>([]);
+export default function ProductsPage() {
+  const [products, setProducts] = useState<UIProduct[]>([]);
   const [formData, setFormData] = useState({
     nombre: '',
-    apellido: '',
-    cedula: '',
-    numero: '',
-    correo: '',
-    direccion: '',
-    sexo: 'MASCULINO' as UISexo,
+    descripcion: '',
+    precio: '',
+    categoria: '',
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -35,9 +26,9 @@ export default function ClientsPage() {
 
   // Consumimos la API del servidor, que usa DI y Prisma del lado servidor
   useEffect(() => {
-    async function fetchClients() {
+    async function fetchProducts() {
       try {
-        const res = await fetch('/api/clients');
+        const res = await fetch('/api/products');
         if (!res.ok) {
           try {
             const errorData = await res.json();
@@ -54,19 +45,19 @@ export default function ClientsPage() {
           }
         }
         const data = await res.json();
-        setClients(data);
+        setProducts(data);
       } catch (err) {
-        console.error('Error fetching clients:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Error desconocido al cargar clientes';
+        console.error('Error fetching products:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Error desconocido al cargar productos';
         setError(errorMessage);
       } finally {
         setLoading(false);
       }
     }
-    fetchClients();
+    fetchProducts();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -76,19 +67,21 @@ export default function ClientsPage() {
 
     // Validación rápida en cliente (complementa la del servidor)
     if (formData.nombre.trim().length < 2) return setError('Nombre debe tener al menos 2 caracteres');
-    if (formData.apellido.trim().length < 2) return setError('Apellido debe tener al menos 2 caracteres');
-    if (formData.cedula.trim().length < 5) return setError('Cédula debe tener al menos 5 caracteres');
-    if (formData.direccion.trim().length < 5) return setError('Dirección debe tener al menos 5 caracteres');
+    if (formData.precio.trim().length === 0) return setError('Precio es requerido');
+    if (isNaN(Number(formData.precio)) || Number(formData.precio) <= 0) {
+      return setError('Precio debe ser un número válido mayor a 0');
+    }
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/clients', {
+      const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          numero: formData.numero || null,
-          sexo: formData.sexo,
+          descripcion: formData.descripcion || null,
+          categoria: formData.categoria || null,
+          precio: Number(formData.precio),
         }),
       });
       
@@ -108,21 +101,18 @@ export default function ClientsPage() {
         }
       }
       
-      const newClient = await res.json();
-      setClients([...clients, newClient]);
+      const newProduct = await res.json();
+      setProducts([...products, newProduct]);
       setFormData({
         nombre: '',
-        apellido: '',
-        cedula: '',
-        numero: '',
-        correo: '',
-        direccion: '',
-        sexo: 'MASCULINO',
+        descripcion: '',
+        precio: '',
+        categoria: '',
       });
       setError(null);
   } catch (err: unknown) {
-      console.error('Error creating client:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al crear el cliente';
+      console.error('Error creating product:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al crear el producto';
       setError(errorMessage);
     } finally {
       setSubmitting(false);
@@ -132,7 +122,7 @@ export default function ClientsPage() {
   const handleDelete = async (id: string) => {
     setError(null);
     try {
-      const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
       if (!res.ok) {
         try {
           const errorData = await res.json();
@@ -148,17 +138,17 @@ export default function ClientsPage() {
           }
         }
       }
-      setClients(clients.filter((c) => c.id !== id));
+      setProducts(products.filter((p) => p.id !== id));
     } catch (err: unknown) {
-      console.error('Error deleting client:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al eliminar el cliente';
+      console.error('Error deleting product:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al eliminar el producto';
       setError(errorMessage);
     }
   };
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: 16 }}>
-      <h1 style={{ marginBottom: 12 }}>Clientes</h1>
+      <h1 style={{ marginBottom: 12 }}>Productos</h1>
       {error && (
         <div style={{ 
           marginBottom: 12, 
@@ -177,9 +167,9 @@ export default function ClientsPage() {
         <p>Cargando...</p>
       ) : (
         <div style={{ marginBottom: 16 }}>
-          {clients.length === 0 && <p>No hay clientes registrados</p>}
-          {clients.map((client) => (
-            <div key={client.id} style={{ 
+          {products.length === 0 && <p>No hay productos registrados</p>}
+          {products.map((product) => (
+            <div key={product.id} style={{ 
               border: '1px solid #e5e5e5', 
               borderRadius: 8, 
               padding: 16, 
@@ -189,14 +179,16 @@ export default function ClientsPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div>
                   <h3 style={{ margin: 0, color: '#111827' }}>
-                    {client.nombre} {client.apellido}
+                    {product.nombre}
                   </h3>
-                  <p style={{ margin: '4px 0', color: '#666', fontSize: '14px' }}>
-                    {client.sexo.charAt(0) + client.sexo.slice(1).toLowerCase()}
-                  </p>
+                  {product.categoria && (
+                    <p style={{ margin: '4px 0', color: '#666', fontSize: '14px' }}>
+                      Categoría: {product.categoria}
+                    </p>
+                  )}
                 </div>
                 <button 
-                  onClick={() => handleDelete(client.id)} 
+                  onClick={() => handleDelete(product.id)} 
                   style={{ 
                     background: '#fee2e2', 
                     color: '#991b1b', 
@@ -210,13 +202,13 @@ export default function ClientsPage() {
                 </button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: '14px' }}>
-                <div><strong>Email:</strong> {client.email}</div>
-                <div><strong>Cédula:</strong> {client.cedula}</div>
-                <div><strong>Teléfono:</strong> {client.numero || 'No especificado'}</div>
-                <div><strong>Dirección:</strong> {client.direccion}</div>
+                <div><strong>Precio:</strong> ${Number(product.precio).toFixed(2)}</div>
+                {product.descripcion && (
+                  <div><strong>Descripción:</strong> {product.descripcion}</div>
+                )}
               </div>
               <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
-                Registrado: {new Date(client.createdAt).toLocaleDateString('es-ES')}
+                Registrado: {new Date(product.createdAt).toLocaleDateString('es-ES')}
               </div>
             </div>
           ))}
@@ -224,21 +216,46 @@ export default function ClientsPage() {
       )}
 
       <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 8 }}>
-        <input name="nombre" placeholder="Nombre" value={formData.nombre} onChange={handleInputChange} required />
-        <input name="apellido" placeholder="Apellido" value={formData.apellido} onChange={handleInputChange} required />
-        <input name="cedula" placeholder="Cédula" value={formData.cedula} onChange={handleInputChange} required />
-        <input name="numero" placeholder="Número" value={formData.numero} onChange={handleInputChange} />
-        <input name="correo" placeholder="Correo (ej: correo@dominio.com)" value={formData.correo} onChange={handleInputChange} required />
-        <input name="direccion" placeholder="Dirección" value={formData.direccion} onChange={handleInputChange} required />
-        <select name="sexo" value={formData.sexo} onChange={handleInputChange}>
-          {UI_SEXOS.map((s) => (
-            <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>
-          ))}
-        </select>
-        <button type="submit" disabled={submitting} style={{ background: '#111827', color: 'white', padding: '8px 12px', borderRadius: 6 }}>
-          {submitting ? 'Guardando…' : 'Agregar Cliente'}
+        <input 
+          name="nombre" 
+          placeholder="Nombre del producto" 
+          value={formData.nombre} 
+          onChange={handleInputChange} 
+          required 
+        />
+        <textarea 
+          name="descripcion" 
+          placeholder="Descripción (opcional)" 
+          value={formData.descripcion} 
+          onChange={handleInputChange}
+          rows={3}
+          style={{ resize: 'vertical' }}
+        />
+        <input 
+          name="precio" 
+          type="number" 
+          step="0.01" 
+          min="0" 
+          placeholder="Precio (ej: 19.99)" 
+          value={formData.precio} 
+          onChange={handleInputChange} 
+          required 
+        />
+        <input 
+          name="categoria" 
+          placeholder="Categoría (opcional)" 
+          value={formData.categoria} 
+          onChange={handleInputChange} 
+        />
+        <button 
+          type="submit" 
+          disabled={submitting} 
+          style={{ background: '#111827', color: 'white', padding: '8px 12px', borderRadius: 6 }}
+        >
+          {submitting ? 'Guardando…' : 'Agregar Producto'}
         </button>
       </form>
     </div>
   );
 }
+

@@ -8,10 +8,9 @@ import { createErrorResponse, createSuccessResponse } from "../../../shared/infr
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-configureContainer();
-
 export async function GET() {
   try {
+    await configureContainer();
     const useCase = container.resolve(GetAllMaterialsUseCase);
     const materials = await useCase.execute();
 
@@ -33,6 +32,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    await configureContainer();
     const body = await req.json();
 
     // Validación básica del payload

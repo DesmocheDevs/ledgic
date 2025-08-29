@@ -10,11 +10,9 @@ import { createErrorResponse, createSuccessResponse } from "../../../shared/infr
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Configurar el contenedor de dependencias
-configureContainer();
-
 export async function GET() {
   try {
+    await configureContainer();
     const useCase = container.resolve(GetAllInventoryUseCase);
     const inventories = await useCase.execute();
     
@@ -39,6 +37,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    await configureContainer();
     const body = await req.json();
 
     // Validación básica del payload

@@ -13,14 +13,21 @@ export class PrismaClientRepository implements ClientRepository {
   async findById(id: UUID): Promise<Client | null> {
     const clientDTO = await this.prisma.client.findUnique({ where: { id: id.getValue() } });
     if (!clientDTO) return null;
-    return ClientMapper.toEntity(clientDTO);
+    
+    const client = ClientMapper.toEntity(clientDTO);
+    return client;
   }
 
   async findAll(): Promise<Client[]> {
     const clientsDTO = await this.prisma.client.findMany({
       orderBy: { createdAt: 'desc' }
     });
-    return clientsDTO.map((dto) => ClientMapper.toEntity(dto));
+    
+    const clients = clientsDTO
+      .map((dto) => ClientMapper.toEntity(dto))
+      .filter((client): client is Client => client !== null);
+      
+    return clients;
   }
 
   async create(client: Client): Promise<void> {

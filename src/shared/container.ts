@@ -28,7 +28,7 @@ export async function configureContainer(): Promise<void> {
     const { PrismaClientRepository } = await import("../modules/clients/infrastructure");
     const { PrismaInventoryRepository } = await import("../modules/inventory/infrastructure");
     const { PrismaMaterialRepository } = await import("../modules/inventory/infrastructure");
-    const { PrismaProductRepository } = await import("../modules/products/infrastructure/repositories/PrismaProductRepository");
+    const { PrismaProductRepository } = await import("../modules/products/infrastructure");
 
     // Registrar repositorios con tipado fuerte
     container.register<ClientRepository>(TOKENS.ClientRepository, {

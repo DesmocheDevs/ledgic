@@ -8,10 +8,9 @@ import { createErrorResponse, createSuccessResponse } from "../../../shared/infr
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-configureContainer();
-
 export async function GET() {
   try {
+    await configureContainer();
     const useCase = container.resolve(GetAllProductsUseCase);
     const products = await useCase.execute();
 
@@ -34,6 +33,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    await configureContainer();
     const body = await req.json();
 
     const required = ["nombre", "precio"] as const;

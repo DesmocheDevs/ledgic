@@ -14,15 +14,36 @@ export async function GET() {
     const useCase = container.resolve(GetAllMaterialsUseCase);
     const materials = await useCase.execute();
 
-    const response = materials.map((m) => ({
-      id: m.id.getValue(),
-      precioCompra: m.precioCompra,
-      proveedor: m.proveedor,
-      inventarioId: m.inventarioId.getValue(),
-      createdAt: m.createdAt,
-      updatedAt: m.updatedAt,
+    // Get inventory data separately using direct Prisma query
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+
+    const response = await Promise.all(materials.map(async (m) => {
+      const inventoryData = await prisma.inventory.findUnique({
+        where: { id: m.inventarioId.getValue() }
+      });
+
+      return {
+        id: m.id.getValue(),
+        precioCompra: m.precioCompra,
+        proveedor: m.proveedor,
+        cantidadActual: m.cantidadActual,
+        valorTotalInventario: m.valorTotalInventario,
+        costoPromedioPonderado: m.costoPromedioPonderado,
+        inventarioId: m.inventarioId.getValue(),
+        inventario: inventoryData ? {
+          id: inventoryData.id,
+          nombre: inventoryData.nombre,
+          categoria: inventoryData.categoria,
+          estado: inventoryData.estado,
+          unidadMedida: inventoryData.unidad_medida,
+        } : null,
+        createdAt: m.createdAt.toISOString(),
+        updatedAt: m.updatedAt.toISOString(),
+      };
     }));
 
+    await prisma.$disconnect();
     return createSuccessResponse(response);
   } catch (error: unknown) {
     console.error('Error en GET /api/materials:', error);

@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { PrismaClient } from '@prisma/client';
-import type { MaterialRepository } from '../../domain';
+import type { MaterialRepository, RegistroProduccionData } from '../../domain';
 import { Material } from '../../domain';
 import { MaterialMapper } from '../mappers/MaterialMapper';
 import { UUID } from '../../../../shared/domain/value-objects/UUID';
@@ -17,6 +17,9 @@ export class PrismaMaterialRepository implements MaterialRepository {
       id: dto.id,
       precioCompra: Number(dto.precioCompra),
       proveedor: dto.proveedor,
+      cantidadActual: dto.cantidadActual ? Number(dto.cantidadActual) : null,
+      valorTotalInventario: dto.valorTotalInventario ? Number(dto.valorTotalInventario) : null,
+      costoPromedioPonderado: dto.costoPromedioPonderado ? Number(dto.costoPromedioPonderado) : null,
       inventarioId: dto.inventarioId,
       createdAt: dto.createdAt,
       updatedAt: dto.updatedAt,
@@ -29,6 +32,9 @@ export class PrismaMaterialRepository implements MaterialRepository {
       id: dto.id,
       precioCompra: Number(dto.precioCompra),
       proveedor: dto.proveedor,
+      cantidadActual: dto.cantidadActual ? Number(dto.cantidadActual) : null,
+      valorTotalInventario: dto.valorTotalInventario ? Number(dto.valorTotalInventario) : null,
+      costoPromedioPonderado: dto.costoPromedioPonderado ? Number(dto.costoPromedioPonderado) : null,
       inventarioId: dto.inventarioId,
       createdAt: dto.createdAt,
       updatedAt: dto.updatedAt,
@@ -47,5 +53,19 @@ export class PrismaMaterialRepository implements MaterialRepository {
 
   async delete(id: UUID): Promise<void> {
     await this.prisma.material.delete({ where: { id: id.getValue() } });
+  }
+
+  async insertRegistroProduccion(data: RegistroProduccionData): Promise<void> {
+    await this.prisma.registro_produccion.create({
+      data: {
+        id: UUID.create().getValue(),
+        lote_id: data.lote_id,
+        material_id: data.material_id,
+        cantidad: data.cantidad,
+        costoUnitario: data.costoUnitario,
+        costoTotal: data.costoTotal,
+        fecha: data.fecha,
+      }
+    });
   }
 }

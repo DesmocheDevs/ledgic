@@ -9,6 +9,12 @@ export { GetMaterialUseCase } from './GetMaterialUseCase';
 export { GetAllMaterialsUseCase } from './GetAllMaterialsUseCase';
 export { UpdateMaterialUseCase } from './UpdateMaterialUseCase';
 export { DeleteMaterialUseCase } from './DeleteMaterialUseCase';
+export { RegistrarCompraMaterialUseCase } from './RegistrarCompraMaterialUseCase';
+export { RegistrarConsumoMaterialUseCase } from './RegistrarConsumoMaterialUseCase';
+export { InicializarInventarioMaterialUseCase } from './InicializarInventarioMaterialUseCase';
 
 export type { CreateInventoryRequest } from './CreateInventoryUseCase';
 export type { UpdateInventoryRequest } from './UpdateInventoryUseCase';
+export type { RegistrarCompraRequest, RegistrarCompraResponse } from './RegistrarCompraMaterialUseCase';
+export type { RegistrarConsumoRequest, RegistrarConsumoResponse } from './RegistrarConsumoMaterialUseCase';
+export type { InicializarInventarioRequest, InicializarInventarioResponse } from './InicializarInventarioMaterialUseCase';

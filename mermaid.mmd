@@ -1,0 +1,160 @@
+---
+config:
+  layout: elk
+---
+erDiagram
+  direction TB
+
+  %% Company entity (unifies Company and Supplier)
+  Company {
+    string id PK
+    string name
+    string address "optional"
+    string phone "optional"
+    string contact "optional, inherited from Supplier"
+    string email "optional, inherited from Supplier"
+    CompanyType type "ORGANIZATION | SUPPLIER | BOTH"
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  %% Purchase entity
+  Purchase {
+    string id PK
+    string companyId FK "FK -> Company (organization)"
+    string supplierId FK "FK -> Company (type SUPPLIER or BOTH)"
+    string invoiceNumber "optional"
+    datetime createdAt
+    decimal totalAmount "sum of items"
+    PurchaseStatus status "PENDING | COMPLETED | CANCELED"
+    datetime updatedAt
+  }
+
+  %% Purchase items
+  PurchaseItem {
+    string id PK
+    string purchaseId FK "FK -> Purchase"
+    string materialId FK "FK -> Inventory (MATERIAL)"
+    decimal quantity
+    decimal unitPrice "acquisition cost"
+    decimal itemTotal "quantity * unitPrice"
+  }
+
+  %% Unified inventory entity
+  Inventory {
+    string id PK
+    string companyId FK "FK -> Company (organization)"
+    string name
+    string category
+    InventoryStatus status "ACTIVE | INACTIVE | OBSOLETE"
+    string unitOfMeasure
+    ItemType itemType "PRODUCT | MATERIAL"
+    decimal currentQuantity "current stock"
+  decimal totalInventoryValue "optional, default 0 — sum of accumulated costs"
+  decimal weightedAverageCost "optional, default 0 — WAC = totalInventoryValue / currentQuantity if currentQuantity > 0"
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  %% 1:1 detail for PRODUCT
+  ProductDetails {
+    string inventoryId PK, FK "FK -> Inventory (PRODUCT)"
+    string description "optional"
+    decimal salePrice "optional"
+    decimal productionCost "enriched from additional"
+    string status "enriched from additional"
+  }
+
+  %% 1:1 detail for MATERIAL
+  MaterialDetails {
+    string inventoryId PK, FK "FK -> Inventory (MATERIAL)"
+    string supplierCompanyId FK "FK -> Company (type SUPPLIER or BOTH, optional, preferred supplier)"
+    decimal unitPrice "enriched from additional"
+  }
+
+  %% Bill of Materials (BOM)
+  ProductMaterial {
+    string productId PK, FK "FK -> Inventory (PRODUCT)"
+    string materialId PK, FK "FK -> Inventory (MATERIAL)"
+    decimal quantity
+    string unitOfMeasure "optional"
+  }
+
+  %% Production lot for PRODUCT
+  ProductionLot {
+    string id PK
+    string companyId FK "FK -> Company (organization)"
+    string productId FK "FK -> Inventory (PRODUCT)"
+    string lotCode
+    decimal plannedQuantity "enriched from additional"
+    decimal producedQuantity
+    decimal unitCost "WAC of the lot, calculated from consumptions + other costs"
+    decimal totalCost "producedQuantity * unitCost"
+    datetime startDate "enriched from additional"
+    datetime endDate "enriched from additional"
+    ProductionLotStatus status "PLANNED | IN_PROGRESS | COMPLETED"
+    datetime createdAt
+    datetime updatedAt
+  %% UNIQUE (companyId, productId, lotCode)
+  }
+
+  %% Material consumption per lot
+  LotMaterialConsumption {
+    string id PK
+    string productionLotId FK "FK -> ProductionLot"
+    string materialId FK "FK -> Inventory (MATERIAL)"
+    decimal quantity
+    decimal unitCost "WAC of material at consumption time"
+    decimal totalCost "quantity * unitCost"
+  %% UNIQUE (productionLotId, materialId)
+  }
+
+  %% Inventory ledger (transactions)
+  InventoryTransaction {
+    string id PK
+    string companyId FK "FK -> Company (organization)"
+    string inventoryId FK "FK -> Inventory"
+  string purchaseId FK "FK -> Purchase (optional)"
+  string productionLotId FK "FK -> ProductionLot (optional)"
+    TransactionType type "INIT | PURCHASE | PRODUCTION_IN | CONSUMPTION | ADJUSTMENT"
+    decimal quantity "positive for inflows, negative for outflows"
+    decimal unitCost "for inflows: acquisition/production cost; for outflows: current WAC"
+    decimal totalCost "quantity * unitCost (absolute for calculations)"
+    datetime createdAt
+    string referenceId "optional (e.g., purchaseId, productionLotId)"
+    string note "optional"
+  }
+
+  %% Relationships and cardinalities
+
+  %% Company as root entity
+  Company ||--o{ Purchase : "purchases"
+  Company ||--o{ Purchase : "suppliedPurchases"
+  Company ||--o{ Inventory : "inventories"
+  Company ||--o{ ProductionLot : "productionLots"
+  Company ||--o{ InventoryTransaction : "transactions"
+  Company ||--o{ MaterialDetails : "preferredSuppliers"
+
+  %% Purchases
+  Purchase ||--o{ PurchaseItem : "items"
+  Inventory ||--o{ PurchaseItem : "purchasedMaterials (MATERIAL)"
+
+  %% Product and material details
+  Inventory ||--o| ProductDetails : "productDetails"
+  Inventory ||--o| MaterialDetails : "materialDetails"
+
+  %% BOM (Bill of Materials)
+  Inventory ||--o{ ProductMaterial : "products (PRODUCT)"
+  Inventory ||--o{ ProductMaterial : "materials (MATERIAL)"
+
+  %% Production
+  Inventory ||--o{ ProductionLot : "lots (PRODUCT)"
+  ProductionLot ||--o{ LotMaterialConsumption : "consumptions"
+  Inventory ||--o{ LotMaterialConsumption : "consumedMaterials (MATERIAL)"
+
+  %% Inventory traceability
+  Inventory ||--o{ InventoryTransaction : "transactions"
+
+  %% Additional integrations
+  ProductionLot ||--o{ InventoryTransaction : "generatesTransactions"
+  Purchase ||--o{ InventoryTransaction : "generatesEntries"

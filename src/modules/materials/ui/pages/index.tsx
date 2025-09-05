@@ -177,7 +177,7 @@ export default function MaterialsPage() {
 
     setSubmitting(true);
     try {
-      const payload: any = {
+      const payload: { cantidad_inicial: number; costo_unitario_inicial: number; fecha_ingreso?: string } = {
         cantidad_inicial: Number(initFormData.cantidad_inicial),
         costo_unitario_inicial: Number(initFormData.costo_unitario_inicial),
       };

@@ -8,6 +8,15 @@ import { createErrorResponse, createSuccessResponse } from "../../../shared/infr
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     tags: [Products]
+ *     summary: Lista productos
+ *     responses:
+ *       200: { description: OK }
+ */
 export async function GET() {
   try {
     await configureContainer();
@@ -31,6 +40,30 @@ export async function GET() {
   }
 }
 
+/**
+ * @swagger
+ * /api/products:
+ *   post:
+ *     tags: [Products]
+ *     summary: Crea un producto y opcionalmente asocia materiales (BOM)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre: { type: string }
+ *               descripcion: { type: string, nullable: true }
+ *               precio: { type: number }
+ *               categoria: { type: string, nullable: true }
+ *               materials: { type: array, items: { type: object } }
+ *             required: [nombre, precio]
+ *     responses:
+ *       201: { description: Creado }
+ *       400: { description: Error de validación }
+ *       409: { description: Conflicto de unicidad }
+ */
 export async function POST(req: Request) {
   try {
     await configureContainer();

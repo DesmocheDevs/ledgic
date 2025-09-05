@@ -1,13 +1,41 @@
 import "reflect-metadata";
-import { NextResponse } from "next/server";
+// NextResponse no se usa en este handler
 import { container, configureContainer } from "../../../../../shared/container";
-import { RegistrarCompraMaterialUseCase } from "../../../../../modules/inventory/application/use-cases";
+import { CreatePurchaseUseCase, CompletePurchaseUseCase } from "../../../../../modules/purchasing/application/use-cases";
 import { DomainError } from "../../../../../shared/domain/errors/DomainError";
 import { createErrorResponse, createSuccessResponse } from "../../../../../shared/infrastructure/utils/errorResponse";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * @swagger
+ * /api/materials/{id}/compra:
+ *   post:
+ *     tags: [Purchasing]
+ *     summary: Registra compra de un material y actualiza inventario
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               companyId: { type: string }
+ *               supplierId: { type: string }
+ *               cantidad_comprada: { type: number }
+ *               precio_unitario_compra: { type: number }
+ *               invoiceNumber: { type: string, nullable: true }
+ *             required: [companyId, supplierId, cantidad_comprada, precio_unitario_compra]
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: Error de validación }
+ */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await configureContainer();
@@ -32,33 +60,28 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     // Ejecutar el caso de uso
-    const useCase = container.resolve(RegistrarCompraMaterialUseCase);
-    const resultado = await useCase.execute({
-      material_id: id,
-      cantidad_comprada: body.cantidad_comprada,
-      precio_unitario_compra: body.precio_unitario_compra,
+    // Map legacy fields to purchasing DTO
+    const qty = body.cantidad_comprada as number;
+    const unit = body.precio_unitario_compra as number;
+    const companyId = body.companyId as string; // expect provided by client
+    const supplierId = body.supplierId as string; // expect provided by client
+
+    const create = container.resolve(CreatePurchaseUseCase);
+    const complete = container.resolve(CompletePurchaseUseCase);
+    const purchase = await create.execute({
+      data: {
+        companyId,
+        supplierId,
+        invoiceNumber: body.invoiceNumber ?? null,
+        totalAmount: (qty * unit).toString(),
+      },
+      items: [{ materialId: id, quantity: qty.toString(), unitPrice: unit.toString(), itemTotal: (qty * unit).toString() }],
     });
 
+    await complete.execute(purchase.id);
+
     // Preparar respuesta
-    const response = {
-      material: {
-        id: resultado.material.id.getValue(),
-        precioCompra: resultado.material.precioCompra,
-        proveedor: resultado.material.proveedor,
-        cantidadActual: resultado.material.cantidadActual,
-        valorTotalInventario: resultado.material.valorTotalInventario,
-        costoPromedioPonderado: resultado.material.costoPromedioPonderado,
-        inventarioId: resultado.material.inventarioId.getValue(),
-        createdAt: resultado.material.createdAt,
-        updatedAt: resultado.material.updatedAt,
-      },
-      compra: {
-        valor_compra: resultado.valor_compra,
-        nueva_cantidad_total: resultado.nueva_cantidad_total,
-        nuevo_valor_total_inventario: resultado.nuevo_valor_total_inventario,
-        nuevo_cpp: resultado.nuevo_cpp,
-      }
-    };
+  const response = { purchaseId: purchase.id };
 
     return createSuccessResponse(response, 200);
 

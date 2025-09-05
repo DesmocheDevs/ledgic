@@ -2,18 +2,28 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { PrismaClient } from "@prisma/client";
 import prisma from "./infrastructure/database/prisma";
-import type { ClientRepository } from "../modules/clients/domain/repositories/ClientRepository";
 import type { InventoryRepository } from "../modules/inventory/domain";
 import type { MaterialRepository } from "../modules/inventory/domain/repositories/MaterialRepository";
 import type { ProductRepository } from "../modules/products/domain";
+import type { CompanyRepository } from "../modules/companies/domain";
+import type { PurchaseRepository } from "../modules/purchasing/domain/repositories/PurchaseRepository";
+import type { LedgerRepository } from "../modules/ledger/domain/repositories/LedgerRepository";
+import type { WacService } from "../modules/ledger/domain/services/WacService";
+import type { ProductionRepository } from "../modules/production/domain/repositories/ProductionRepository";
+import type { BomRepository } from "../modules/bom/domain/repositories/BomRepository";
 
 // Tokens para inyección de dependencias
 export const TOKENS = {
   PrismaClient: "PrismaClient",
-  ClientRepository: "ClientRepository",
   InventoryRepository: "InventoryRepository",
   MaterialRepository: "MaterialRepository",
   ProductRepository: "ProductRepository",
+  CompanyRepository: "CompanyRepository",
+  PurchaseRepository: "PurchaseRepository",
+  LedgerRepository: "LedgerRepository",
+  WacService: "WacService",
+  ProductionRepository: "ProductionRepository",
+  BomRepository: "BomRepository",
 } as const;
 
 let isContainerConfigured = false;
@@ -25,15 +35,17 @@ export async function configureContainer(): Promise<void> {
     container.registerInstance<PrismaClient>(TOKENS.PrismaClient, prisma);
 
     // Import dinámico para evitar ciclos y cumplir reglas ESM
-    const { PrismaClientRepository } = await import("../modules/clients/infrastructure");
-    const { PrismaInventoryRepository } = await import("../modules/inventory/infrastructure");
-    const { PrismaMaterialRepository } = await import("../modules/inventory/infrastructure");
-    const { PrismaProductRepository } = await import("../modules/products/infrastructure");
+  const { PrismaInventoryRepository } = await import("../modules/inventory/infrastructure");
+  const { PrismaMaterialRepository } = await import("../modules/inventory/infrastructure");
+  const { PrismaProductRepository } = await import("../modules/products/infrastructure");
+  const { PrismaCompanyRepository } = await import("../modules/companies/infrastructure");
+  const { PrismaPurchaseRepository } = await import("../modules/purchasing/infrastructure/repositories/PrismaPurchaseRepository");
+  const { PrismaLedgerRepository, PrismaWacService } = await import("../modules/ledger/infrastructure");
+  const { PrismaProductionRepository } = await import("../modules/production/infrastructure/repositories/PrismaProductionRepository");
+  const { PrismaBomRepository } = await import("../modules/bom/infrastructure/repositories/PrismaBomRepository");
 
     // Registrar repositorios con tipado fuerte
-    container.register<ClientRepository>(TOKENS.ClientRepository, {
-      useClass: PrismaClientRepository,
-    });
+  // Clients module removed
 
     container.register<InventoryRepository>(TOKENS.InventoryRepository, {
       useClass: PrismaInventoryRepository,
@@ -45,6 +57,25 @@ export async function configureContainer(): Promise<void> {
 
     container.register<ProductRepository>(TOKENS.ProductRepository, {
       useClass: PrismaProductRepository,
+    });
+
+    container.register<CompanyRepository>(TOKENS.CompanyRepository, {
+      useClass: PrismaCompanyRepository,
+    });
+    container.register<PurchaseRepository>(TOKENS.PurchaseRepository, {
+      useClass: PrismaPurchaseRepository,
+    });
+    container.register<LedgerRepository>(TOKENS.LedgerRepository, {
+      useClass: PrismaLedgerRepository,
+    });
+    container.register<WacService>(TOKENS.WacService, {
+      useClass: PrismaWacService,
+    });
+    container.register<ProductionRepository>(TOKENS.ProductionRepository, {
+      useClass: PrismaProductionRepository,
+    });
+    container.register<BomRepository>(TOKENS.BomRepository, {
+      useClass: PrismaBomRepository,
     });
 
     isContainerConfigured = true;

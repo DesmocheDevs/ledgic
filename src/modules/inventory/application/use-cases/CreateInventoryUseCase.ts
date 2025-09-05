@@ -1,16 +1,16 @@
 import { injectable, inject } from 'tsyringe';
-import type { InventoryRepository } from '../../domain';
+import type { InventoryRepository, InventoryCreateInput } from '../../domain';
 import { Inventory, EstadoInventario } from '../../domain';
 import { UUID } from '../../../../shared/domain/value-objects/UUID';
 import { TOKENS } from '../../../../shared/container';
 
 export interface CreateInventoryRequest {
-  nombre: string;
-  categoria: string;
-  estado: EstadoInventario;
-  unidadMedida: string;
-  proveedor: string | null;
-  tipo: string | null;
+  companyId: string;
+  name: string;
+  category: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'OBSOLETE';
+  unitOfMeasure: string;
+  itemType: 'PRODUCT' | 'MATERIAL';
 }
 
 @injectable()
@@ -23,17 +23,18 @@ export class CreateInventoryUseCase {
 
     const inventory = new Inventory(
       id,
-      request.nombre,
-      request.categoria,
-      request.estado,
-      request.unidadMedida,
-      request.proveedor,
-      request.tipo,
+      request.name,
+      request.category,
+  (request.status === 'ACTIVE' ? EstadoInventario.ACTIVO : request.status === 'INACTIVE' ? EstadoInventario.INACTIVO : EstadoInventario.DESCONTINUADO),
+      request.unitOfMeasure,
+      null,
+      request.itemType,
       now,
       now,
     );
 
-    await this.repository.create(inventory);
+  const payload: InventoryCreateInput = Object.assign(inventory, { companyId: request.companyId });
+  await this.repository.create(payload);
     return inventory;
   }
 }

@@ -1,13 +1,42 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "reflect-metadata";
-import { NextResponse } from "next/server";
-import { container, configureContainer } from "../../../../../shared/container";
-import { InicializarInventarioMaterialUseCase } from "../../../../../modules/inventory/application/use-cases";
+import { container, configureContainer, TOKENS } from "../../../../../shared/container";
+import type { PrismaClient } from "@prisma/client";
 import { DomainError } from "../../../../../shared/domain/errors/DomainError";
 import { createErrorResponse, createSuccessResponse } from "../../../../../shared/infrastructure/utils/errorResponse";
+import type { LedgerRepository } from "../../../../../modules/ledger/domain/repositories/LedgerRepository";
+import type { WacService } from "../../../../../modules/ledger/domain/services/WacService";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * @swagger
+ * /api/materials/{id}/inicializar:
+ *   post:
+ *     tags: [Ledger]
+ *     summary: Inicializa stock de un material con un asiento INIT
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               companyId: { type: string }
+ *               cantidad_inicial: { type: number }
+ *               costo_unitario_inicial: { type: number }
+ *               fecha_ingreso: { type: string, nullable: true }
+ *             required: [companyId, cantidad_inicial, costo_unitario_inicial]
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: Error de validación }
+ */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await configureContainer();
@@ -15,7 +44,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const body = await req.json();
 
     // Validación básica del payload
-    const required = ["cantidad_inicial", "costo_unitario_inicial"] as const;
+  const required = ["companyId", "cantidad_inicial", "costo_unitario_inicial"] as const;
     for (const field of required) {
       if (body[field] === undefined || body[field] === null) {
         return createErrorResponse(`Campo inválido o faltante: ${field}`, 400);
@@ -36,48 +65,37 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return createErrorResponse('fecha_ingreso debe ser una cadena de texto válida', 400);
     }
 
-    // Ejecutar el caso de uso
-    const useCase = container.resolve(InicializarInventarioMaterialUseCase);
-    const resultado = await useCase.execute({
-      material_id: id,
-      cantidad_inicial: body.cantidad_inicial,
-      costo_unitario_inicial: body.costo_unitario_inicial,
-      fecha_ingreso: body.fecha_ingreso,
-    });
+    const companyId = body.companyId as string;
+    const qty = body.cantidad_inicial as number;
+    const unit = body.costo_unitario_inicial as number;
 
-    // Get inventory data
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
-    const inventoryData = await prisma.inventory.findUnique({
-      where: { id: resultado.material.inventarioId.getValue() }
+    // Post ledger INIT and apply WAC entry
+    const ledger = container.resolve<LedgerRepository>(TOKENS.LedgerRepository);
+    const wac = container.resolve<WacService>(TOKENS.WacService);
+    await ledger.post({
+      companyId,
+      inventoryId: id,
+      type: "INIT",
+      quantity: qty.toString(),
+      unitCost: unit.toString(),
+      referenceId: body.fecha_ingreso ?? null,
     });
+    await wac.applyEntry({ inventoryId: id, quantity: qty.toString(), unitCost: unit.toString() });
+
+    // Obtener inventario actualizado
+    const prisma = container.resolve<PrismaClient>(TOKENS.PrismaClient);
+    const inventoryData = await prisma.inventory.findUnique({ where: { id } });
 
     // Preparar respuesta
     const response = {
-      material: {
-        id: resultado.material.id.getValue(),
-        precioCompra: resultado.material.precioCompra,
-        proveedor: resultado.material.proveedor,
-        cantidadActual: resultado.material.cantidadActual,
-        valorTotalInventario: resultado.material.valorTotalInventario,
-        costoPromedioPonderado: resultado.material.costoPromedioPonderado,
-        inventarioId: resultado.material.inventarioId.getValue(),
-        inventario: inventoryData ? {
-          id: inventoryData.id,
-          nombre: inventoryData.nombre,
-          categoria: inventoryData.categoria,
-          estado: inventoryData.estado,
-          unidadMedida: inventoryData.unidad_medida,
-        } : null,
-        createdAt: resultado.material.createdAt,
-        updatedAt: resultado.material.updatedAt,
-      },
-      inicializacion: {
-        cantidad_inicial: resultado.cantidad_inicial,
-        valor_total_inventario: resultado.valor_total_inventario,
-        costo_promedio_ponderado: resultado.costo_promedio_ponderado,
-        fecha_ingreso: resultado.fecha_ingreso.toISOString(),
-      }
+      inventory: inventoryData
+        ? {
+            id: inventoryData.id,
+            currentQuantity: (inventoryData as any).currentQuantity,
+            totalInventoryValue: (inventoryData as any).totalInventoryValue,
+            weightedAverageCost: (inventoryData as any).weightedAverageCost,
+          }
+        : null,
     };
 
     return createSuccessResponse(response, 200);

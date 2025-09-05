@@ -1,13 +1,38 @@
 import "reflect-metadata";
-import { NextResponse } from "next/server";
 import { container, configureContainer } from "../../../../../shared/container";
-import { RegistrarConsumoMaterialUseCase } from "../../../../../modules/inventory/application/use-cases";
 import { DomainError } from "../../../../../shared/domain/errors/DomainError";
 import { createErrorResponse, createSuccessResponse } from "../../../../../shared/infrastructure/utils/errorResponse";
+import { RegisterConsumptionUseCase } from "../../../../../modules/production/application/use-cases";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * @swagger
+ * /api/materials/{id}/consumo:
+ *   post:
+ *     tags: [Production]
+ *     summary: Registra consumo de un material en un lote de producción
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               companyId: { type: string }
+ *               lote_id: { type: string }
+ *               cantidad_consumida: { type: number }
+ *             required: [companyId, lote_id, cantidad_consumida]
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: Error de validación }
+ */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await configureContainer();
@@ -15,7 +40,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const body = await req.json();
 
     // Validación básica del payload
-    const required = ["cantidad_consumida", "lote_id"] as const;
+  const required = ["cantidad_consumida", "lote_id", "companyId"] as const;
     for (const field of required) {
       if (body[field] === undefined || body[field] === null) {
         return createErrorResponse(`Campo inválido o faltante: ${field}`, 400);
@@ -30,36 +55,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (typeof body.lote_id !== 'string' || body.lote_id.trim().length === 0) {
       return createErrorResponse('lote_id debe ser una cadena de texto válida', 400);
     }
+    if (typeof body.companyId !== 'string' || body.companyId.trim().length === 0) {
+      return createErrorResponse('companyId debe ser una cadena de texto válida', 400);
+    }
 
-    // Ejecutar el caso de uso
-    const useCase = container.resolve(RegistrarConsumoMaterialUseCase);
-    const resultado = await useCase.execute({
-      material_id: id,
-      cantidad_consumida: body.cantidad_consumida,
-      lote_id: body.lote_id,
+    // Ejecutar caso de uso de producción (consumo)
+    const useCase = container.resolve(RegisterConsumptionUseCase);
+    await useCase.execute({
+      lotId: body.lote_id,
+      materialId: id,
+      companyId: body.companyId,
+      quantity: String(body.cantidad_consumida),
     });
 
     // Preparar respuesta
-    const response = {
-      material: {
-        id: resultado.material.id.getValue(),
-        precioCompra: resultado.material.precioCompra,
-        proveedor: resultado.material.proveedor,
-        cantidadActual: resultado.material.cantidadActual,
-        valorTotalInventario: resultado.material.valorTotalInventario,
-        costoPromedioPonderado: resultado.material.costoPromedioPonderado,
-        inventarioId: resultado.material.inventarioId.getValue(),
-        createdAt: resultado.material.createdAt,
-        updatedAt: resultado.material.updatedAt,
-      },
-      consumo: {
-        costo_total_consumo: resultado.costo_total_consumo,
-        nueva_cantidad_total: resultado.nueva_cantidad_total,
-        nuevo_valor_total_inventario: resultado.nuevo_valor_total_inventario,
-        costo_promedio_ponderado: resultado.costo_promedio_ponderado,
-        lote_id: body.lote_id,
-      }
-    };
+  const response = { ok: true, lotId: body.lote_id, materialId: id };
 
     return createSuccessResponse(response, 200);
 

@@ -1,13 +1,14 @@
-export type EstadoInventarioDTO = 'ACTIVO' | 'INACTIVO' | 'DESCONTINUADO';
+export type InventoryStatusDTO = 'ACTIVE' | 'INACTIVE' | 'OBSOLETE';
+export type ItemTypeDTO = 'PRODUCT' | 'MATERIAL';
 
 export interface InventoryDTO {
   id: string;
-  nombre: string;
-  categoria: string;
-  estado: EstadoInventarioDTO;
-  unidadMedida: string;
-  proveedor: string | null;
-  tipo: string | null;
+  companyId: string;
+  name: string;
+  category: string;
+  status: InventoryStatusDTO;
+  unitOfMeasure: string;
+  itemType: ItemTypeDTO;
   createdAt: Date;
   updatedAt: Date;
 }

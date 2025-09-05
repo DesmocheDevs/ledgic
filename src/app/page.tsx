@@ -7,12 +7,7 @@ export default function Home() {
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <h1 className="text-2xl font-bold text-center sm:text-left mb-8">Sistema de Gestión Ledgic</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
-          <Link
-            href="/clients"
-            className="inline-flex items-center justify-center rounded-md bg-black text-white px-4 py-3 text-sm font-medium hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-colors"
-          >
-             Clientes
-          </Link>
+          {/* Clients module removed */}
           <Link
             href="/inventory"
             className="inline-flex items-center justify-center rounded-md bg-black text-white px-4 py-3 text-sm font-medium hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-colors"

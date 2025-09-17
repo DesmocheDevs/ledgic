@@ -8,12 +8,12 @@ import type { BomItem } from "../../domain/entities/Bom";
 export class PrismaBomRepository implements BomRepository {
   constructor(@inject(TOKENS.PrismaClient) private readonly prisma: PrismaClient) {}
 
-  async list(productId: string): Promise<BomItem[]> {
+  async getByProduct(productId: string): Promise<BomItem[]> {
     const rows = await this.prisma.productMaterial.findMany({ where: { productId } });
-  return rows.map(r => ({ productId: r.productId, materialId: r.materialId, quantity: r.quantity.toString(), unitOfMeasure: r.unitOfMeasure ?? null }));
+    return rows.map(r => ({ productId: r.productId, materialId: r.materialId, quantity: r.quantity.toString(), unitOfMeasure: r.unitOfMeasure ?? null }));
   }
 
-  async upsert(productId: string, items: BomItem[]): Promise<void> {
+  async replace(productId: string, items: BomItem[]): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.productMaterial.deleteMany({ where: { productId } });
       if (items.length === 0) return;

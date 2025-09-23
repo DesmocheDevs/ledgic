@@ -1,21 +1,78 @@
 import "reflect-metadata";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+export const Helvetica = localFont({
+  src: [
+    { path: "./fonts/Helvetica.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/Helvetica.woff", weight: "400", style: "normal" },
+    { path: "./fonts/Helvetica.ttf", weight: "400", style: "normal" },
+  ],
+  variable: "--font-helvetica",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+export const OpenSans = localFont({
+  src: [
+    { path: "./fonts/OpenSans.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/OpenSans.woff", weight: "400", style: "normal" },
+    { path: "./fonts/OpenSans.ttf", weight: "400", style: "normal" },
+  ],
+  variable: "--font-opensans",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Ledgic",
-  description: "Tu mejor amigo en la gestion de tu negocio",
+  metadataBase: new URL("https://ledgic.com"),
+  title: {
+    default: "Ledgic | Ecosistema para MiPymes",
+    template: "%s | Ledgic",
+  },
+  description:
+    "Ledgic es un ecosistema de crecimiento para MiPymes: define costes, colabora con otras empresas y potencia tu negocio.",
+  applicationName: "Ledgic",
+  generator: "Next.js",
+  keywords: [
+    "Ledgic",
+    "MiPyme",
+    "costeo",
+    "colaboración",
+    "negocios",
+    "ecosistema",
+    "pymes",
+    "gestión empresarial",
+  ],
+  authors: [
+    { name: "DesmocheDevs", url: "https://ledgic.com" },
+    { name: "Equipo Ledgic" },
+  ],
+  creator: "DesmocheDevs",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+    other: [
+      { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#042257" },
+    ],
+  },
+  openGraph: {
+    title: "Ledgic | Ecosistema para MiPymes",
+    description:
+      "Gestiona costes, colabora y haz crecer tu pyme con Ledgic.",
+    url: "https://ledgic.com",
+    siteName: "Ledgic",
+    images: [
+      {
+        url: "/opengraph.jpeg",
+        width: 1200,
+        height: 630,
+        alt: "Ledgic - Ecosistema para MiPymes",
+      },
+    ],
+    locale: "es_ES",
+    type: "website",
+  }
 };
 
 export default function RootLayout({
@@ -25,9 +82,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${Helvetica.variable} ${OpenSans.variable} antialiased`}>
         {children}
       </body>
     </html>

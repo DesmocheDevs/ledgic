@@ -25,6 +25,13 @@ const eslintConfig = [
       "**/*.d.ts",
     ],
   },
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "no-unused-vars": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;

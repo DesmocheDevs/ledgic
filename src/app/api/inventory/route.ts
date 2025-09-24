@@ -2,7 +2,6 @@ import "reflect-metadata";
 import { Prisma } from "@prisma/client";
 import { container, configureContainer } from "../../../shared/container";
 import { GetAllInventoryUseCase, CreateInventoryUseCase } from "../../../modules/inventory/application/use-cases";
-import { EstadoInventario } from "../../../modules/inventory/domain";
 import { DomainError } from "../../../shared/domain/errors/DomainError";
 import { createErrorResponse, createSuccessResponse } from "../../../shared/infrastructure/utils/errorResponse";
 
@@ -10,6 +9,16 @@ import { createErrorResponse, createSuccessResponse } from "../../../shared/infr
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * @swagger
+ * /api/inventory:
+ *   get:
+ *     tags: [Inventory]
+ *     summary: Lista inventario
+ *     responses:
+ *       200:
+ *         description: OK
+ */
 export async function GET() {
   try {
     await configureContainer();
@@ -35,65 +44,105 @@ export async function GET() {
   }
 }
 
+/**
+ * @swagger
+ * /api/inventory:
+ *   post:
+ *     tags: [Inventory]
+ *     summary: Crea un ítem de inventario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               companyId: { type: string }
+ *               name: { type: string }
+ *               category: { type: string }
+ *               status: { type: string, enum: [ACTIVE, INACTIVE, OBSOLETE] }
+ *               unitOfMeasure: { type: string }
+ *               itemType: { type: string, enum: [PRODUCT, MATERIAL] }
+ *             required: [companyId, name, category, status, unitOfMeasure, itemType]
+ *     responses:
+ *       201: { description: Creado }
+ *       400: { description: Error de validación }
+ *       409: { description: Conflicto de unicidad }
+ */
 export async function POST(req: Request) {
   try {
     await configureContainer();
     const body = await req.json();
 
-    // Validación básica del payload
-    const required = ["nombre", "categoria", "estado", "unidadMedida"] as const;
-    for (const field of required) {
-      if (!body[field] || typeof body[field] !== "string") {
-        return createErrorResponse(`Campo inválido o faltante: ${field}`, 400);
-      }
+    // Accept legacy Spanish fields and new English ones; require companyId and itemType
+    const name: string | undefined = body.nombre ?? body.name;
+    const category: string | undefined = body.categoria ?? body.category;
+    const unitOfMeasure: string | undefined = body.unidadMedida ?? body.unitOfMeasure;
+    const companyId: string | undefined = body.companyId;
+    const rawItemType: string | undefined = body.itemType ?? body.tipo;
+    const rawStatus: string | undefined = body.status ?? body.estado;
+
+    // Validate required
+    if (!name || typeof name !== 'string' || name.trim().length < 2) {
+      return createErrorResponse('Campo inválido o faltante: name/nombre', 400);
+    }
+    if (!category || typeof category !== 'string' || category.trim().length < 2) {
+      return createErrorResponse('Campo inválido o faltante: category/categoria', 400);
+    }
+    if (!unitOfMeasure || typeof unitOfMeasure !== 'string' || unitOfMeasure.trim().length === 0 || unitOfMeasure.length > 50) {
+      return createErrorResponse('Campo inválido o faltante: unitOfMeasure/unidadMedida', 400);
+    }
+    if (!companyId || typeof companyId !== 'string' || companyId.trim().length === 0) {
+      return createErrorResponse('Campo inválido o faltante: companyId', 400);
+    }
+    if (!rawItemType || typeof rawItemType !== 'string') {
+      return createErrorResponse('Campo inválido o faltante: itemType/tipo', 400);
     }
 
-    // Validaciones específicas
-    if (body.nombre.trim().length < 2) {
-      return createErrorResponse("Nombre debe tener al menos 2 caracteres", 400);
-    }
-    if (body.categoria.trim().length < 2) {
-      return createErrorResponse("Categoría debe tener al menos 2 caracteres", 400);
-    }
-    if (body.unidadMedida.trim().length === 0) {
-      return createErrorResponse("Unidad de medida es requerida", 400);
-    }
-    if (body.unidadMedida.length > 50) {
-      return createErrorResponse("Unidad de medida no puede exceder 50 caracteres", 400);
-    }
-    if (!Object.values(EstadoInventario).includes(body.estado)) {
-      return createErrorResponse("Estado inválido", 400);
-    }
-    if (body.proveedor !== undefined && body.proveedor !== null && body.proveedor.trim().length < 2) {
-      return createErrorResponse("Proveedor debe tener al menos 2 caracteres", 400);
-    }
-    if (body.tipo !== undefined && body.tipo !== null && body.tipo.trim().length < 2) {
-      return createErrorResponse("Tipo debe tener al menos 2 caracteres", 400);
+    // Map status to English enum
+    let status: 'ACTIVE' | 'INACTIVE' | 'OBSOLETE';
+    if (rawStatus === 'ACTIVE' || rawStatus === 'INACTIVE' || rawStatus === 'OBSOLETE') {
+      status = rawStatus;
+    } else if (rawStatus === 'ACTIVO') {
+      status = 'ACTIVE';
+    } else if (rawStatus === 'INACTIVO') {
+      status = 'INACTIVE';
+    } else if (rawStatus === 'DESCONTINUADO') {
+      status = 'OBSOLETE';
+    } else {
+      return createErrorResponse('Estado/Status inválido', 400);
     }
 
-    // Normalización
-    const proveedor = body.proveedor === "" ? null : body.proveedor;
-    const tipo = body.tipo === "" ? null : body.tipo;
+    // Map itemType to English enum
+    let itemType: 'PRODUCT' | 'MATERIAL';
+    if (rawItemType === 'PRODUCT' || rawItemType === 'MATERIAL') {
+      itemType = rawItemType;
+    } else if (rawItemType.toUpperCase() === 'PRODUCTO') {
+      itemType = 'PRODUCT';
+    } else if (rawItemType.toUpperCase() === 'MATERIAL') {
+      itemType = 'MATERIAL';
+    } else {
+      return createErrorResponse('itemType/tipo inválido', 400);
+    }
 
     const useCase = container.resolve(CreateInventoryUseCase);
     const inventory = await useCase.execute({
-      nombre: body.nombre,
-      categoria: body.categoria,
-      estado: body.estado,
-      unidadMedida: body.unidadMedida,
-      proveedor,
-      tipo,
+      companyId,
+      name,
+      category,
+      status,
+      unitOfMeasure,
+      itemType,
     });
 
     // Solo si no hubo excepción, se construye y retorna la respuesta
     return createSuccessResponse({
       id: inventory.id.getValue(),
-      nombre: inventory.nombre,
-      categoria: inventory.categoria,
-      estado: inventory.estado,
-      unidadMedida: inventory.unidadMedida,
-      proveedor: inventory.proveedor,
-      tipo: inventory.tipo,
+  nombre: inventory.nombre,
+  categoria: inventory.categoria,
+  estado: inventory.estado,
+  unidadMedida: inventory.unidadMedida,
+  tipo: inventory.tipo,
       createdAt: inventory.createdAt,
       updatedAt: inventory.updatedAt,
     }, 201);

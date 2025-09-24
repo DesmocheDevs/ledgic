@@ -9,6 +9,25 @@ export const dynamic = 'force-dynamic';
 
 configureContainer();
 
+/**
+ * @swagger
+ * /api/products/{id}/materials/{materialId}:
+ *   delete:
+ *     tags: [BOM]
+ *     summary: Elimina un material del producto
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *       - in: path
+ *         name: materialId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: Eliminado }
+ *       404: { description: No encontrado }
+ */
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string; materialId: string }> }) {
   try {
     const { id, materialId } = await params;

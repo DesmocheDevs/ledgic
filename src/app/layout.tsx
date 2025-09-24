@@ -1,27 +1,7 @@
 import "reflect-metadata";
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Helvetica, OpenSans } from "./fonts";
 import "./globals.css";
-
-export const Helvetica = localFont({
-  src: [
-    { path: "./fonts/Helvetica.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/Helvetica.woff", weight: "400", style: "normal" },
-    { path: "./fonts/Helvetica.ttf", weight: "400", style: "normal" },
-  ],
-  variable: "--font-helvetica",
-  display: "swap",
-});
-
-export const OpenSans = localFont({
-  src: [
-    { path: "./fonts/OpenSans.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/OpenSans.woff", weight: "400", style: "normal" },
-    { path: "./fonts/OpenSans.ttf", weight: "400", style: "normal" },
-  ],
-  variable: "--font-opensans",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ledgic.com"),

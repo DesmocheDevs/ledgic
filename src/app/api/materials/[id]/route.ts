@@ -7,10 +7,25 @@ import { DomainError } from "../../../../shared/domain/errors/DomainError";
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-configureContainer();
-
+/**
+ * @swagger
+ * /api/materials/{id}:
+ *   get:
+ *     tags: [Materials]
+ *     summary: Obtiene un material por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200: { description: OK }
+ *       404: { description: No encontrado }
+ */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+  await configureContainer();
     const { id } = await params;
     const useCase = container.resolve(GetMaterialUseCase);
     const material = await useCase.execute(id);
@@ -39,8 +54,26 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   }
 }
 
+/**
+ * @swagger
+ * /api/materials/{id}:
+ *   put:
+ *     tags: [Materials]
+ *     summary: Actualiza un material por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: Error de validación }
+ *       404: { description: No encontrado }
+ */
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+  await configureContainer();
     const body = await req.json();
 
     if (Object.keys(body).length === 0) {
@@ -85,8 +118,25 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
+/**
+ * @swagger
+ * /api/materials/{id}:
+ *   delete:
+ *     tags: [Materials]
+ *     summary: Elimina un material por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200: { description: Eliminado }
+ *       404: { description: No encontrado }
+ */
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+  await configureContainer();
     const { id } = await params;
     const useCase = container.resolve(DeleteMaterialUseCase);
     await useCase.execute(id);

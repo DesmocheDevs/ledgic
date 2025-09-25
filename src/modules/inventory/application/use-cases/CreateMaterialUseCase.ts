@@ -23,8 +23,11 @@ export class CreateMaterialUseCase {
       request.precioCompra,
       request.proveedor,
       UUID.fromString(request.inventarioId),
-      now,
-      now,
+      null, // cantidadActual
+      null, // valorTotalInventario
+      null, // costoPromedioPonderado
+      now, // createdAt
+      now, // updatedAt
     );
 
     await this.repository.create(material);

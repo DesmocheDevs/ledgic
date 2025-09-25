@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { Prisma } from "@prisma/client";
-import { container, configureContainer } from "../../../shared/container";
+import { container, configureContainer, TOKENS } from "../../../shared/container";
+import type { PrismaClient } from "@prisma/client";
 import { GetAllMaterialsUseCase, CreateMaterialUseCase } from "../../../modules/inventory/application/use-cases";
 import { DomainError } from "../../../shared/domain/errors/DomainError";
 import { createErrorResponse, createSuccessResponse } from "../../../shared/infrastructure/utils/errorResponse";
@@ -8,19 +9,48 @@ import { createErrorResponse, createSuccessResponse } from "../../../shared/infr
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * @swagger
+ * /api/materials:
+ *   get:
+ *     tags: [Materials]
+ *     summary: Lista materiales
+ *     responses:
+ *       200:
+ *         description: OK
+ */
 export async function GET() {
   try {
     await configureContainer();
     const useCase = container.resolve(GetAllMaterialsUseCase);
     const materials = await useCase.execute();
 
-    const response = materials.map((m) => ({
-      id: m.id.getValue(),
-      precioCompra: m.precioCompra,
-      proveedor: m.proveedor,
-      inventarioId: m.inventarioId.getValue(),
-      createdAt: m.createdAt,
-      updatedAt: m.updatedAt,
+  // Usa el PrismaClient del contenedor (evita require y múltiples instancias)
+  const prisma = container.resolve<PrismaClient>(TOKENS.PrismaClient);
+
+    const response = await Promise.all(materials.map(async (m) => {
+      const inventoryData = await prisma.inventory.findUnique({
+        where: { id: m.inventarioId.getValue() }
+      });
+
+      return {
+        id: m.id.getValue(),
+        precioCompra: m.precioCompra,
+        proveedor: m.proveedor,
+        cantidadActual: m.cantidadActual,
+        valorTotalInventario: m.valorTotalInventario,
+        costoPromedioPonderado: m.costoPromedioPonderado,
+        inventarioId: m.inventarioId.getValue(),
+        inventario: inventoryData ? {
+          id: inventoryData.id,
+          nombre: inventoryData.name,
+          categoria: inventoryData.category,
+          estado: inventoryData.status,
+          unidadMedida: inventoryData.unitOfMeasure,
+        } : null,
+        createdAt: m.createdAt.toISOString(),
+        updatedAt: m.updatedAt.toISOString(),
+      };
     }));
 
     return createSuccessResponse(response);
@@ -30,6 +60,28 @@ export async function GET() {
   }
 }
 
+/**
+ * @swagger
+ * /api/materials:
+ *   post:
+ *     tags: [Materials]
+ *     summary: Crea detalles de material para un inventario MATERIAL
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               precioCompra: { type: number }
+ *               proveedor: { type: string, nullable: true }
+ *               inventarioId: { type: string }
+ *             required: [precioCompra, inventarioId]
+ *     responses:
+ *       201: { description: Creado }
+ *       400: { description: Error de validación }
+ *       409: { description: Conflicto (FK) }
+ */
 export async function POST(req: Request) {
   try {
     await configureContainer();

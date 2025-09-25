@@ -8,10 +8,27 @@ import { DomainError } from '../../../../../shared/domain/errors/DomainError';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-configureContainer();
-
+/**
+ * @swagger
+ * /api/products/{id}/materials:
+ *   get:
+ *     tags: [BOM]
+ *     summary: Lista materiales asociados a un producto
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Producto no encontrado
+ */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+  await configureContainer();
     const { id } = await params;
     const useCase = container.resolve(GetProductMaterialsUseCase);
     const items = await useCase.execute(id);
@@ -34,8 +51,26 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   }
 }
 
+/**
+ * @swagger
+ * /api/products/{id}/materials:
+ *   put:
+ *     tags: [BOM]
+ *     summary: Reemplaza el set completo de materiales para un producto
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: Error de validación }
+ *       404: { description: Material/Producto no encontrado }
+ */
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+  await configureContainer();
     const { id } = await params;
     const body = await req.json();
 
@@ -75,8 +110,27 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
+/**
+ * @swagger
+ * /api/products/{id}/materials:
+ *   post:
+ *     tags: [BOM]
+ *     summary: Agrega un material al producto
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201: { description: Creado }
+ *       400: { description: Error de validación }
+ *       404: { description: Material/Producto no encontrado }
+ *       409: { description: Ya existe }
+ */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+  await configureContainer();
     const { id } = await params;
     const body = await req.json();
 

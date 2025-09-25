@@ -11,6 +11,22 @@ export const dynamic = 'force-dynamic';
 // Configurar el contenedor de dependencias
 configureContainer();
 
+/**
+ * @swagger
+ * /api/inventory/{id}:
+ *   get:
+ *     tags: [Inventory]
+ *     summary: Obtiene un inventario por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200: { description: OK }
+ *       404: { description: No encontrado }
+ */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -45,6 +61,23 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   }
 }
 
+/**
+ * @swagger
+ * /api/inventory/{id}:
+ *   put:
+ *     tags: [Inventory]
+ *     summary: Actualiza un inventario por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: Error de validación }
+ *       404: { description: No encontrado }
+ */
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const body = await req.json();
@@ -139,6 +172,22 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
+/**
+ * @swagger
+ * /api/inventory/{id}:
+ *   delete:
+ *     tags: [Inventory]
+ *     summary: Elimina un inventario por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200: { description: Eliminado }
+ *       404: { description: No encontrado }
+ */
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;

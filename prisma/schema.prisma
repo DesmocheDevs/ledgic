@@ -9,61 +9,62 @@ datasource db {
 
 // Company can be an organization, supplier, or both
 model Company {
-  id          String       @id @default(uuid())
-  name        String
-  address     String?
-  phone       String?
-  contact     String?
-  email       String?      @unique
-  type        CompanyType
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
-  
+  id        String      @id @default(uuid())
+  name      String
+  address   String?
+  phone     String?
+  contact   String?
+  email     String?     @unique
+  type      CompanyType
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
   // Relations
-  purchases   Purchase[]   @relation("OrganizationPurchases")
-  supplies    Purchase[]   @relation("SupplierPurchases")
-  inventories Inventory[]
-  lots        ProductionLot[]
+  purchases    Purchase[]             @relation("OrganizationPurchases")
+  supplies     Purchase[]             @relation("SupplierPurchases")
+  inventories  Inventory[]
+  lots         ProductionLot[]
   transactions InventoryTransaction[]
-  materials   MaterialDetails[]
+  materials    MaterialDetails[]
+  ventas       Venta[]
 
   @@map("companies")
 }
 
 model Purchase {
-  id              String        @id @default(uuid())
-  companyId       String       @map("company_id")
-  supplierId      String       @map("supplier_id")
-  invoiceNumber   String?      @map("invoice_number")
-  totalAmount     Decimal      @map("total_amount") @db.Decimal(12, 4)
-  status          PurchaseStatus
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @updatedAt @map("updated_at")
-  
-  // Relations
-  company         Company      @relation("OrganizationPurchases", fields: [companyId], references: [id])
-  supplier        Company      @relation("SupplierPurchases", fields: [supplierId], references: [id])
-  items           PurchaseItem[]
-  transactions    InventoryTransaction[]
+  id            String         @id @default(uuid())
+  companyId     String         @map("company_id")
+  supplierId    String         @map("supplier_id")
+  invoiceNumber String?        @map("invoice_number")
+  totalAmount   Decimal        @map("total_amount") @db.Decimal(12, 4)
+  status        PurchaseStatus
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
 
+  // Relations
+  company      Company                @relation("OrganizationPurchases", fields: [companyId], references: [id])
+  supplier     Company                @relation("SupplierPurchases", fields: [supplierId], references: [id])
+  items        PurchaseItem[]
+  transactions InventoryTransaction[]
+
+  @@unique([supplierId, invoiceNumber])
   @@index([companyId])
   @@index([supplierId])
   @@index([invoiceNumber])
-  @@unique([supplierId, invoiceNumber])
   @@map("purchases")
 }
 
 model PurchaseItem {
-  id          String   @id @default(uuid())
-  purchaseId  String   @map("purchase_id")
-  materialId  String   @map("material_id")
-  quantity    Decimal  @db.Decimal(12, 4)
-  unitPrice   Decimal  @map("unit_price") @db.Decimal(12, 4)
-  itemTotal   Decimal  @map("item_total") @db.Decimal(12, 4)
-  
+  id         String  @id @default(uuid())
+  purchaseId String  @map("purchase_id")
+  materialId String  @map("material_id")
+  quantity   Decimal @db.Decimal(12, 4)
+  unitPrice  Decimal @map("unit_price") @db.Decimal(12, 4)
+  itemTotal  Decimal @map("item_total") @db.Decimal(12, 4)
+
   // Relations
-  purchase    Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
-  material    Inventory @relation(fields: [materialId], references: [id])
+  purchase Purchase  @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  material Inventory @relation(fields: [materialId], references: [id])
 
   @@index([purchaseId])
   @@index([materialId])
@@ -71,35 +72,38 @@ model PurchaseItem {
 }
 
 model Inventory {
-  id                  String               @id @default(uuid())
-  companyId           String               @map("company_id")
+  id                  String          @id @default(uuid())
+  companyId           String          @map("company_id")
   name                String
-  category           String
-  status             InventoryStatus
-  unitOfMeasure      String               @map("unit_of_measure")
-  itemType           ItemType             @map("item_type")
-  currentQuantity    Decimal              @map("current_quantity") @db.Decimal(12, 4) @default(0)
-  totalInventoryValue Decimal?             @map("total_inventory_value") @db.Decimal(12, 4) @default(0)
-  weightedAverageCost Decimal?             @map("weighted_average_cost") @db.Decimal(12, 4) @default(0)
-  createdAt          DateTime             @default(now()) @map("created_at")
-  updatedAt          DateTime             @updatedAt @map("updated_at")
-  
-  // Relations
-  company            Company              @relation(fields: [companyId], references: [id])
-  productDetails     ProductDetails?      @relation("ProductDetails")
-  materialDetails    MaterialDetails?     @relation("MaterialDetails")
-  productMaterials   ProductMaterial[]    @relation("ProductMaterials")
-  materialProducts   ProductMaterial[]    @relation("MaterialProducts")
-  lots               ProductionLot[]
-  consumptions       LotMaterialConsumption[]
-  transactions       InventoryTransaction[]
-  purchaseItems      PurchaseItem[]
+  category            String
+  status              InventoryStatus
+  unitOfMeasure       String          @map("unit_of_measure")
+  itemType            ItemType        @map("item_type")
+  currentQuantity     Decimal         @default(0) @map("current_quantity") @db.Decimal(12, 4)
+  totalInventoryValue Decimal?        @default(0) @map("total_inventory_value") @db.Decimal(12, 4)
+  weightedAverageCost Decimal?        @default(0) @map("weighted_average_cost") @db.Decimal(12, 4)
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
 
+  // Relations
+  company          Company                  @relation(fields: [companyId], references: [id])
+  productDetails   ProductDetails?          @relation("ProductDetails")
+  materialDetails  MaterialDetails?         @relation("MaterialDetails")
+  productMaterials ProductMaterial[]        @relation("ProductMaterials")
+  materialProducts ProductMaterial[]        @relation("MaterialProducts")
+  lots             ProductionLot[]
+  consumptions     LotMaterialConsumption[]
+  transactions     InventoryTransaction[]
+  purchaseItems    PurchaseItem[]
+  detallesVenta    DetalleVenta[]
+  preciosProducto  PrecioProducto[]
+  reportes         Reporte[]
+
+  @@unique([companyId, name])
   @@index([companyId])
   @@index([category])
   @@index([status])
   @@index([itemType])
-  @@unique([companyId, name])
   @@map("inventory")
 }
 
@@ -109,80 +113,83 @@ model ProductDetails {
   salePrice      Decimal? @map("sale_price") @db.Decimal(12, 4)
   productionCost Decimal? @map("production_cost") @db.Decimal(12, 4)
   status         String?
-  
+
   // Relations
-  inventory      Inventory @relation("ProductDetails", fields: [inventoryId], references: [id], onDelete: Cascade)
+  inventory Inventory @relation("ProductDetails", fields: [inventoryId], references: [id], onDelete: Cascade)
 
   @@map("product_details")
 }
 
 model MaterialDetails {
-  inventoryId      String   @id @map("inventory_id")
+  inventoryId       String   @id @map("inventory_id")
   supplierCompanyId String?  @map("supplier_company_id")
-  unitPrice        Decimal? @map("unit_price") @db.Decimal(12, 4)
-  
+  unitPrice         Decimal? @map("unit_price") @db.Decimal(12, 4)
+
   // Relations
-  inventory        Inventory @relation("MaterialDetails", fields: [inventoryId], references: [id], onDelete: Cascade)
-  supplier         Company?  @relation(fields: [supplierCompanyId], references: [id])
+  inventory Inventory @relation("MaterialDetails", fields: [inventoryId], references: [id], onDelete: Cascade)
+  supplier  Company?  @relation(fields: [supplierCompanyId], references: [id])
 
   @@index([supplierCompanyId])
   @@map("material_details")
 }
 
 model ProductMaterial {
-  productId      String   @map("product_id")
-  materialId     String   @map("material_id")
-  quantity       Decimal  @db.Decimal(12, 4)
-  unitOfMeasure  String?  @map("unit_of_measure") @db.VarChar(50)
-  
+  productId     String  @map("product_id")
+  materialId    String  @map("material_id")
+  quantity      Decimal @db.Decimal(12, 4)
+  unitOfMeasure String? @map("unit_of_measure") @db.VarChar(50)
+
   // Relations
-  product        Inventory @relation("ProductMaterials", fields: [productId], references: [id], onDelete: Cascade)
-  material       Inventory @relation("MaterialProducts", fields: [materialId], references: [id])
+  product  Inventory @relation("ProductMaterials", fields: [productId], references: [id], onDelete: Cascade)
+  material Inventory @relation("MaterialProducts", fields: [materialId], references: [id])
 
   @@id([productId, materialId])
   @@map("product_materials")
 }
 
 model ProductionLot {
-  id              String                  @id @default(uuid())
-  companyId       String                  @map("company_id")
-  productId       String                  @map("product_id")
-  lotCode         String                  @map("lot_code")
-  plannedQuantity Decimal                 @map("planned_quantity") @db.Decimal(12, 4)
-  producedQuantity Decimal                 @map("produced_quantity") @db.Decimal(12, 4) @default(0)
-  unitCost        Decimal?                @map("unit_cost") @db.Decimal(12, 4)
-  totalCost       Decimal?                @map("total_cost") @db.Decimal(12, 4)
-  startDate       DateTime?               @map("start_date")
-  endDate         DateTime?               @map("end_date")
-  status          ProductionLotStatus
-  createdAt       DateTime                @default(now()) @map("created_at")
-  updatedAt       DateTime                @updatedAt @map("updated_at")
-  
-  // Relations
-  company         Company                 @relation(fields: [companyId], references: [id])
-  product         Inventory               @relation(fields: [productId], references: [id])
-  consumptions    LotMaterialConsumption[]
-  transactions    InventoryTransaction[]
+  id               String              @id @default(uuid())
+  companyId        String              @map("company_id")
+  productId        String              @map("product_id")
+  lotCode          String              @map("lot_code")
+  plannedQuantity  Decimal             @map("planned_quantity") @db.Decimal(12, 4)
+  producedQuantity Decimal             @default(0) @map("produced_quantity") @db.Decimal(12, 4)
+  unitCost         Decimal?            @map("unit_cost") @db.Decimal(12, 4)
+  totalCost        Decimal?            @map("total_cost") @db.Decimal(12, 4)
+  startDate        DateTime?           @map("start_date")
+  endDate          DateTime?           @map("end_date")
+  status           ProductionLotStatus
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
 
+  // Relations
+  company             Company                  @relation(fields: [companyId], references: [id])
+  product             Inventory                @relation(fields: [productId], references: [id])
+  consumptions        LotMaterialConsumption[]
+  transactions        InventoryTransaction[]
+  reportes            Reporte[]
+  costeo              Costeo[]
+  registrosProduccion RegistroProduccion[]     @relation("ProduccionAcumulada")
+
+  @@unique([companyId, productId, lotCode])
   @@index([companyId])
   @@index([productId])
   @@index([lotCode])
   @@index([status])
-  @@unique([companyId, productId, lotCode])
   @@map("production_lots")
 }
 
 model LotMaterialConsumption {
-  id              String      @id @default(uuid())
-  productionLotId String      @map("production_lot_id")
-  materialId      String      @map("material_id")
-  quantity        Decimal     @db.Decimal(12, 4)
-  unitCost        Decimal     @map("unit_cost") @db.Decimal(12, 4)
-  totalCost       Decimal     @map("total_cost") @db.Decimal(12, 4)
-  
+  id              String  @id @default(uuid())
+  productionLotId String  @map("production_lot_id")
+  materialId      String  @map("material_id")
+  quantity        Decimal @db.Decimal(12, 4)
+  unitCost        Decimal @map("unit_cost") @db.Decimal(12, 4)
+  totalCost       Decimal @map("total_cost") @db.Decimal(12, 4)
+
   // Relations
-  productionLot   ProductionLot @relation(fields: [productionLotId], references: [id], onDelete: Cascade)
-  material        Inventory     @relation(fields: [materialId], references: [id])
+  productionLot ProductionLot @relation(fields: [productionLotId], references: [id], onDelete: Cascade)
+  material      Inventory     @relation(fields: [materialId], references: [id])
 
   @@index([productionLotId])
   @@index([materialId])
@@ -190,24 +197,24 @@ model LotMaterialConsumption {
 }
 
 model InventoryTransaction {
-  id           String             @id @default(uuid())
-  companyId    String             @map("company_id")
-  inventoryId  String             @map("inventory_id")
-  purchaseId   String?            @map("purchase_id")
+  id              String          @id @default(uuid())
+  companyId       String          @map("company_id")
+  inventoryId     String          @map("inventory_id")
+  purchaseId      String?         @map("purchase_id")
   productionLotId String?         @map("production_lot_id")
-  type         TransactionType
-  quantity     Decimal            @db.Decimal(12, 4)
-  unitCost     Decimal            @map("unit_cost") @db.Decimal(12, 4)
-  totalCost    Decimal            @map("total_cost") @db.Decimal(12, 4)
-  referenceId  String?            @map("reference_id")
-  note         String?
-  createdAt    DateTime           @default(now()) @map("created_at")
-  
+  type            TransactionType
+  quantity        Decimal         @db.Decimal(12, 4)
+  unitCost        Decimal         @map("unit_cost") @db.Decimal(12, 4)
+  totalCost       Decimal         @map("total_cost") @db.Decimal(12, 4)
+  referenceId     String?         @map("reference_id")
+  note            String?
+  createdAt       DateTime        @default(now()) @map("created_at")
+
   // Relations
-  company      Company            @relation(fields: [companyId], references: [id])
-  inventory    Inventory          @relation(fields: [inventoryId], references: [id])
-  purchase     Purchase?          @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
-  productionLot ProductionLot?    @relation(fields: [productionLotId], references: [id], onDelete: SetNull)
+  company       Company        @relation(fields: [companyId], references: [id])
+  inventory     Inventory      @relation(fields: [inventoryId], references: [id])
+  purchase      Purchase?      @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+  productionLot ProductionLot? @relation(fields: [productionLotId], references: [id], onDelete: SetNull)
 
   @@index([companyId])
   @@index([inventoryId])
@@ -219,6 +226,238 @@ model InventoryTransaction {
   @@index([companyId, createdAt])
   @@index([inventoryId, createdAt])
   @@map("inventory_transactions")
+}
+
+// ===== NUEVOS MODELOS PARA GESTIÓN DE USUARIOS =====
+
+// Modelos de catálogos base
+model CatalogoGeneral {
+  id          Int      @id @default(autoincrement())
+  descripcion String   @db.VarChar(255)
+  grupo       String   @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  costeoMetodos       Costeo[]             @relation("MetodoCosteo")
+  precioEstrategias   PrecioProducto[]     @relation("EstrategiaPrecio")
+  registrosProduccion RegistroProduccion[] @relation("TipoRegistro")
+
+  @@map("catalogo_general_categorias_procedimientos_calculos")
+}
+
+model CatalogoPersonas {
+  id          Int      @id @default(autoincrement())
+  descripcion String   @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  personasTipoEntidad Personas[] @relation("TipoEntidad")
+  personasTipoPersona Personas[] @relation("TipoPersona")
+
+  @@map("catalogo_personas_clientes_usuarios")
+}
+
+// Modelo base para personas
+model Personas {
+  id              Int      @id @default(autoincrement())
+  primerNombre    String   @map("primer_nombre") @db.VarChar(50)
+  segundoNombre   String?  @map("segundo_nombre") @db.VarChar(50)
+  primerApellido  String   @map("primer_apellido") @db.VarChar(50)
+  segundoApellido String?  @map("segundo_apellido") @db.VarChar(50)
+  nombreCompleto  String   @map("nombre_completo") @db.VarChar(200)
+  direccion       String?  @db.VarChar(255)
+  municipio       String?  @db.VarChar(100)
+  celular         String?  @db.VarChar(20)
+  correo          String?  @db.VarChar(100)
+  tipoEntidadId   Int      @map("tipo_entidad_catalogo_persona")
+  tipoPersonaId   Int      @map("tipo_persona_catalogo_persona")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  tipoEntidad   CatalogoPersonas @relation("TipoEntidad", fields: [tipoEntidadId], references: [id])
+  tipoPersona   CatalogoPersonas @relation("TipoPersona", fields: [tipoPersonaId], references: [id])
+  usuario       Usuario?
+  ventasCliente Venta[]          @relation("ClienteVentas")
+
+  @@unique([correo])
+  @@map("personas")
+}
+
+// Modelo de usuarios del sistema
+model Usuario {
+  id         Int      @id @default(autoincrement())
+  personaId  Int      @unique @map("id_persona")
+  nombre     String   @db.VarChar(100)
+  contrasena String   @db.VarChar(255)
+  correo     String   @unique @db.VarChar(100)
+  activo     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("creado")
+  updatedAt  DateTime @updatedAt @map("actualizado")
+
+  // Relaciones
+  persona  Personas  @relation(fields: [personaId], references: [id])
+  ventas   Venta[]   @relation("UsuarioVentas")
+  reportes Reporte[]
+
+  @@map("usuarios")
+}
+
+// Modelos de ventas
+model Venta {
+  id        Int      @id @default(autoincrement())
+  clienteId Int      @map("id_cliente")
+  companyId String   @map("company_id")
+  fecha     DateTime @default(now())
+  total     Decimal  @db.Decimal(12, 4)
+  estado    String   @default("PENDIENTE") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("creado")
+  updatedAt DateTime @updatedAt @map("actualizado")
+  usuarioId Int      @map("id_usuario")
+
+  // Relaciones
+  cliente  Personas       @relation("ClienteVentas", fields: [clienteId], references: [id])
+  company  Company        @relation(fields: [companyId], references: [id])
+  usuario  Usuario        @relation("UsuarioVentas", fields: [usuarioId], references: [id])
+  detalles DetalleVenta[]
+  factura  Factura?
+  reportes Reporte[]
+
+  @@map("ventas")
+}
+
+model DetalleVenta {
+  id             Int     @id @default(autoincrement())
+  ventaId        Int     @map("id_venta")
+  inventoryId    String  @map("inventory_id")
+  cantidad       Int
+  precioUnitario Decimal @map("precio_unitario") @db.Decimal(12, 4)
+  subtotal       Decimal @db.Decimal(12, 4)
+
+  // Relaciones
+  venta    Venta     @relation(fields: [ventaId], references: [id])
+  producto Inventory @relation(fields: [inventoryId], references: [id])
+
+  @@map("detalle_ventas")
+}
+
+// Modelo de facturación
+model Factura {
+  id           Int      @id @default(autoincrement())
+  ventaId      Int      @unique @map("id_venta")
+  fechaEmision DateTime @default(now()) @map("fecha_emision")
+  total        Decimal  @db.Decimal(12, 4)
+  iva          Decimal  @default(0) @db.Decimal(12, 4)
+  estadoPago   String   @default("PENDIENTE") @map("estado_pago") @db.VarChar(20)
+  vencimiento  DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones
+  venta    Venta     @relation(fields: [ventaId], references: [id])
+  reportes Reporte[]
+
+  @@map("facturas")
+}
+
+// Modelos de reportes y análisis
+model Reporte {
+  id              Int      @id @default(autoincrement())
+  tipoReporte     String   @map("tipo_reporte") @db.VarChar(50)
+  fechaGeneracion DateTime @default(now()) @map("fecha_generacion")
+  datosResumidos  String   @map("datos_resumidos") @db.Text
+  usuarioId       Int      @map("id_usuario")
+  formato         String   @default("PDF") @db.VarChar(20)
+  ventaId         Int?     @map("venta_id")
+  facturaId       Int?     @map("factura_id")
+  inventoryId     String?  @map("inventory_id")
+  productionLotId String?  @map("production_lot_id")
+  costeoId        Int?     @map("costeo_id")
+
+  // Relaciones
+  usuario        Usuario        @relation(fields: [usuarioId], references: [id])
+  venta          Venta?         @relation(fields: [ventaId], references: [id])
+  factura        Factura?       @relation(fields: [facturaId], references: [id])
+  producto       Inventory?     @relation(fields: [inventoryId], references: [id])
+  loteProduccion ProductionLot? @relation(fields: [productionLotId], references: [id])
+  costeo         Costeo?        @relation(fields: [costeoId], references: [id])
+
+  @@map("reportes")
+}
+
+// Modelos de costeo
+model Costeo {
+  id              Int      @id @default(autoincrement())
+  productionLotId String   @map("production_lot_id")
+  metodoId        Int      @map("id_metodo")
+  costoTotal      Decimal  @map("costo_total") @db.Decimal(12, 4)
+  version         Int      @default(1)
+  fecha           DateTime @default(now())
+  observaciones   String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  loteProduccion  ProductionLot    @relation(fields: [productionLotId], references: [id])
+  metodo          CatalogoGeneral  @relation("MetodoCosteo", fields: [metodoId], references: [id])
+  factores        FactoresCosteo[]
+  preciosProducto PrecioProducto[]
+  reportes        Reporte[]
+
+  @@unique([productionLotId, version])
+  @@map("costeos")
+}
+
+model FactoresCosteo {
+  id           Int     @id @default(autoincrement())
+  costeoId     Int     @map("id_costeo")
+  valor        Decimal @db.Decimal(12, 4)
+  cantidad     Decimal @db.Decimal(12, 4)
+  unidadMedida String  @map("unidad_medida") @db.VarChar(50)
+
+  // Relaciones
+  costeo Costeo @relation(fields: [costeoId], references: [id])
+
+  @@map("factores_de_costeo")
+}
+
+// Modelo de precios de productos
+model PrecioProducto {
+  id           Int      @id @default(autoincrement())
+  inventoryId  String   @map("inventory_id")
+  estrategiaId Int      @map("id_estrategia")
+  precioBase   Decimal  @map("precio_base") @db.Decimal(12, 4)
+  precioFinal  Decimal  @map("precio_final") @db.Decimal(12, 4)
+  vigenteDesde DateTime @default(now()) @map("vigente_desde")
+  vigenteHasta DateTime @map("vigente_hasta")
+  costeoId     Int?     @map("costeo_id")
+
+  // Relaciones
+  producto   Inventory       @relation(fields: [inventoryId], references: [id])
+  estrategia CatalogoGeneral @relation("EstrategiaPrecio", fields: [estrategiaId], references: [id])
+  costeo     Costeo?         @relation(fields: [costeoId], references: [id])
+
+  @@map("precios_productos")
+}
+
+// Modelo de registro de producción
+model RegistroProduccion {
+  id              Int      @id @default(autoincrement())
+  productionLotId String   @map("production_lot_id")
+  tipoRegistroId  Int      @map("id_tipo_registro")
+  cantidad        Int
+  costoUnitario   Decimal  @map("costo_unitario") @db.Decimal(12, 4)
+  costoTotal      Decimal  @map("costo_total") @db.Decimal(12, 4)
+  nota            String?  @db.Text
+  fecha           DateTime @default(now())
+
+  // Relaciones
+  loteProduccion ProductionLot   @relation("ProduccionAcumulada", fields: [productionLotId], references: [id])
+  tipoRegistro   CatalogoGeneral @relation("TipoRegistro", fields: [tipoRegistroId], references: [id])
+
+  @@map("registros_produccion")
 }
 
 // Enums

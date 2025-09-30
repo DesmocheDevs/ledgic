@@ -2,6 +2,8 @@ import "reflect-metadata";
 import type { Metadata } from "next";
 import { Helvetica, OpenSans } from "./fonts";
 import "./globals.css";
+import "./production-theme.css";
+import { SessionProvider } from "./providers/SessionProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ledgic.com"),
@@ -63,7 +65,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${Helvetica.variable} ${OpenSans.variable} antialiased`}>
-        {children}
+        <SessionProvider>
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );

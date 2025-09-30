@@ -1,8 +1,6 @@
 import "reflect-metadata";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-      <main>
-      </main>
-  );
+  redirect("/login");
 }

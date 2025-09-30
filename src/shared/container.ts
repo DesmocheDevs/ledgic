@@ -12,6 +12,7 @@ import type { WacService } from "../modules/ledger/domain/services/WacService";
 import type { ProductionRepository } from "../modules/production/domain/repositories/ProductionRepository";
 import type { BomRepository } from "../modules/bom/domain/repositories/BomRepository";
 import type { LotRepository } from "../modules/production/domain/repositories/LotRepository";
+import type { ProductionFlowService } from "../modules/production/application/services/ProductionFlowService";
 
 // Tokens para inyección de dependencias
 export const TOKENS = {
@@ -26,6 +27,7 @@ export const TOKENS = {
   ProductionRepository: "ProductionRepository",
   BomRepository: "BomRepository",
   LotRepository: "LotRepository",
+  ProductionFlowService: "ProductionFlowService",
 } as const;
 
 let isContainerConfigured = false;
@@ -46,6 +48,7 @@ export async function configureContainer(): Promise<void> {
   const { PrismaProductionRepository } = await import("../modules/production/infrastructure/repositories/PrismaProductionRepository");
   const { PrismaLotRepository } = await import("../modules/production/infrastructure/repositories/PrismaLotRepository");
   const { PrismaBomRepository } = await import("../modules/bom/infrastructure/repositories/PrismaBomRepository");
+  const { ProductionFlowService } = await import("../modules/production/application/services/ProductionFlowService");
 
     // Registrar repositorios con tipado fuerte
   // Clients module removed
@@ -82,6 +85,10 @@ export async function configureContainer(): Promise<void> {
     });
     container.register<LotRepository>(TOKENS.LotRepository, {
       useClass: PrismaLotRepository,
+    });
+
+    container.register<ProductionFlowService>(TOKENS.ProductionFlowService, {
+      useClass: ProductionFlowService,
     });
 
     isContainerConfigured = true;

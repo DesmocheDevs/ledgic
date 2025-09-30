@@ -5,6 +5,7 @@ import type { PrismaClient } from "@prisma/client";
 import { GetAllMaterialsUseCase, CreateMaterialUseCase } from "../../../modules/inventory/application/use-cases";
 import { DomainError } from "../../../shared/domain/errors/DomainError";
 import { createErrorResponse, createSuccessResponse } from "../../../shared/infrastructure/utils/errorResponse";
+import { getValidatedSession } from "@/lib/auth-utils";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,6 +22,9 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET() {
   try {
+    // Validate user session
+    await getValidatedSession();
+
     await configureContainer();
     const useCase = container.resolve(GetAllMaterialsUseCase);
     const materials = await useCase.execute();
@@ -84,6 +88,9 @@ export async function GET() {
  */
 export async function POST(req: Request) {
   try {
+    // Validate user session
+    await getValidatedSession();
+
     await configureContainer();
     const body = await req.json();
 

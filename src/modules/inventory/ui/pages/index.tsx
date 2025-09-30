@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRequireAuth } from '@/hooks/useAuth';
+import { AuthLoading } from '@/components/auth/AuthLoading';
 
 // Define a UI-only EstadoInventario type to avoid importing domain entities in the client bundle
 const UI_ESTADOS = ['ACTIVO', 'INACTIVO', 'DESCONTINUADO'] as const;
@@ -19,6 +21,9 @@ type UIInventory = {
 };
 
 export default function InventoryPage() {
+  // Client-side authentication check
+  const { isLoading: authLoading } = useRequireAuth();
+
   const [inventories, setInventories] = useState<UIInventory[]>([]);
   const [formData, setFormData] = useState({
     nombre: '',
@@ -163,6 +168,11 @@ export default function InventoryPage() {
       default: return '#6b7280';
     }
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return <AuthLoading message="Cargando inventario..." />;
+  }
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>

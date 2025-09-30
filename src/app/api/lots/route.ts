@@ -60,3 +60,43 @@ export async function POST(req: Request) {
     return createErrorResponse("Error interno del servidor", 500);
   }
 }
+
+/**
+ * @swagger
+ * /api/lots:
+ *   get:
+ *     tags: [Production]
+ *     summary: Obtener todos los lotes de producción
+ *     parameters:
+ *       - in: query
+ *         name: companyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200: { description: Lista de lotes }
+ *       400: { description: Error de validación }
+ */
+export async function GET(req: Request) {
+  try {
+    await configureContainer();
+    const { searchParams } = new URL(req.url);
+    const companyId = searchParams.get('companyId');
+
+    if (!companyId) {
+      return createErrorResponse('companyId es requerido', 400);
+    }
+
+    // TODO: Implementar cuando se resuelvan los problemas de importación
+    return createSuccessResponse({
+      lots: [],
+      message: 'Endpoint disponible - implementación pendiente'
+    });
+  } catch (error: unknown) {
+    console.error('Error en GET /api/lots:', error);
+    if (error instanceof DomainError) {
+      return createErrorResponse(error.message, 400);
+    }
+    return createErrorResponse("Error interno del servidor", 500);
+  }
+}

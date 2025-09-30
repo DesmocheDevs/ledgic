@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRequireAuth } from '@/hooks/useAuth';
+import { AuthLoading } from '@/components/auth/AuthLoading';
 
 type UIProduct = {
   id: string;
@@ -13,6 +15,8 @@ type UIProduct = {
 };
 
 export default function ProductsPage() {
+  // Client-side authentication check
+  const { isLoading: authLoading } = useRequireAuth();
   const [products, setProducts] = useState<UIProduct[]>([]);
   const [formData, setFormData] = useState({
     nombre: '',
@@ -23,6 +27,11 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return <AuthLoading message="Cargando productos..." />;
+  }
 
   // Consumimos la API del servidor, que usa DI y Prisma del lado servidor
   useEffect(() => {

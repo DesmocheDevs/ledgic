@@ -1,10 +1,45 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Credenciales inválidas");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      setError("Error al iniciar sesión");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-teal-strong from-30% via-white via-100% to-white p-4">
       <section className="flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl border-4 border-black bg-white/80 shadow-lg md:flex-row">
-        
+
         {/* Izquierda: Pet + info */}
         <div className="flex flex-1 flex-col items-center justify-between rounded-l-2xl bg-white p-8">
           {/* Navigation Buttons */}
@@ -19,7 +54,7 @@ export default function Login() {
               Regístrate
             </a>
           </div>
-          
+
           {/* Pet Image */}
           <div className="flex w-full flex-1 items-center justify-center">
             <Image
@@ -31,7 +66,7 @@ export default function Login() {
               priority
             />
           </div>
-          
+
           {/* Developer Info */}
           <div className="mt-3 flex w-full items-center justify-start gap-2">
             <span className="inline-block h-6 w-6 rounded-full bg-teal-strong"></span>
@@ -41,7 +76,7 @@ export default function Login() {
             </div>
           </div>
         </div>
-        
+
         {/* Derecha: Formulario */}
         <div className="flex flex-1 flex-col bg-black p-8">
           {/* Logo */}
@@ -53,7 +88,7 @@ export default function Login() {
               height={36}
             />
           </div>
-          
+
           {/* Welcome Text */}
           <h1
             className="mb-2 text-3xl font-bold text-white text-center "
@@ -64,25 +99,38 @@ export default function Login() {
           <div className="mb-6 text-sm text-teal-strong text-center">
             Planificador de costos | Manufactura inteligente
           </div>
-          
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-500 p-3 text-white text-sm">
+              {error}
+            </div>
+          )}
+
           {/* Login Form */}
-          <form className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {/* Email Input */}
             <input
               type="email"
               placeholder="Correo"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="rounded-2xl border border-white bg-black px-4 py-2 text-white placeholder:text-white/80 focus:border-teal-strong focus:outline-none"
               style={{ fontFamily: 'var(--font-opensans)' }}
+              required
             />
-            
+
             {/* Password Input */}
             <input
               type="password"
               placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="rounded-2xl border border-white bg-black px-4 py-2 text-white placeholder:text-white/80 focus:border-teal-strong focus:outline-none"
               style={{ fontFamily: 'var(--font-opensans)' }}
+              required
             />
-            
+
             {/* Forgot Password Link */}
             <a
               href="#"
@@ -90,16 +138,17 @@ export default function Login() {
             >
               ¿Ha olvidado su contraseña?
             </a>
-            
+
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full rounded-full bg-red py-2 text-lg font-semibold text-white transition-colors hover:opacity-90"
+              disabled={isLoading}
+              className="w-full rounded-full bg-red py-2 text-lg font-semibold text-white transition-colors hover:opacity-90 disabled:opacity-50"
             >
-              Login
+              {isLoading ? "Iniciando..." : "Login"}
             </button>
           </form>
-          
+
           {/* Register Link */}
           <div className="mt-4 text-center text-xs text-white">
             ¿No tienes una cuenta?{' '}

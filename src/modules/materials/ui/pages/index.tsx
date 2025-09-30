@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRequireAuth } from '@/hooks/useAuth';
+import { AuthLoading } from '@/components/auth/AuthLoading';
 
 type UIMaterial = {
   id: string;
@@ -34,6 +36,9 @@ type UIInventory = {
 };
 
 export default function MaterialsPage() {
+  // Client-side authentication check
+  const { isLoading: authLoading } = useRequireAuth();
+
   const [materials, setMaterials] = useState<UIMaterial[]>([]);
   const [inventories, setInventories] = useState<UIInventory[]>([]);
   const [formData, setFormData] = useState({
@@ -326,6 +331,11 @@ export default function MaterialsPage() {
     const material = materials.find(m => m.id === selectedMaterial);
     return material ? material.inventario.nombre : '';
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return <AuthLoading message="Cargando materiales..." />;
+  }
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: 16 }}>
